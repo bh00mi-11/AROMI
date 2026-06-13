@@ -16,7 +16,8 @@ reportlab==4.1.0
 numpy==1.26.4
 python-dotenv==1.0.1
 aiofiles==23.2.1
-Pillow==10.3.0
+Pillow>=10.4.0
+twilio==9.3.2
 # ChromaDB is optional — RAG falls back to embedded KB if not available
 # chromadb==0.5.0
 # sentence-transformers==3.0.0
