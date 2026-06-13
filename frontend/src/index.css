@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { font-family: "Noto Sans Devanagari", sans-serif; background: #F9FAFB; }
+
+.card { @apply bg-white rounded-xl shadow-sm border border-gray-100 p-4; }
+.btn-primary { @apply bg-primary text-white px-4 py-2 rounded-lg font-semibold hover:bg-primary-dark transition-all active:scale-95; }
+.btn-secondary { @apply bg-primary-light text-primary-dark px-4 py-2 rounded-lg font-semibold hover:bg-orange-100 transition-all; }
+.badge-mam { @apply bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs font-semibold; }
+.badge-sam { @apply bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold; }
+.badge-normal { @apply bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold; }
+.badge-unknown { @apply bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs font-semibold; }
+.offline-bar { @apply bg-yellow-400 text-yellow-900 text-xs text-center py-1 font-semibold; }
