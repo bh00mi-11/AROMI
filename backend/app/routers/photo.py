@@ -38,34 +38,54 @@ async def photo_malnutrition_check(
     b64_image = base64.b64encode(image_bytes).decode("utf-8")
     media_type = photo.content_type or "image/jpeg"
 
-    prompt = f"""You are AROMI, an AI assistant for Anganwadi health workers in India.
+    prompt = f"""You are AROMI, an AI assistant for Anganwadi health workers in India, screening for Severe Acute Malnutrition (SAM) from a child's photo.
 
-You are analyzing a photo of a child for visible signs of malnutrition.
 Child: {child_name}, Age: {age_months} months ({age_months // 12} years {age_months % 12} months)
 
-Assess visible indicators:
-- Visible arm/leg thinning (muscle wasting)
-- Swollen abdomen (kwashiorkor sign)
-- Hair changes (sparse, discolored)
-- Skin changes
-- Overall body composition vs expected for age
+Carefully examine the photo for these specific visual signs, in order of importance:
+
+SAM (Severe Acute Malnutrition) — look for ANY of these:
+- Ribs, sternum, or spine clearly visible/countable through skin
+- Shoulder blades, hip bones, or collarbones sharply prominent
+- Limbs appear as "skin and bone" — minimal to no visible muscle or fat layer
+- Loose, baggy skin folds on buttocks or thighs ("baggy pants" sign)
+- Face appears aged/gaunt — sunken cheeks, sunken temples ("old man face")
+- Bilateral pitting edema / swollen feet, legs, or face (kwashiorkor — even if limbs look thin elsewhere)
+- Visibly skeletal overall body frame relative to age
+If you observe 2 or more of these signs clearly, classify as SAM even if you are not 100% certain — err toward flagging for urgent review rather than missing a severe case.
+
+MAM (Moderate Acute Malnutrition) — look for:
+- Mild muscle wasting in arms/legs, but bones not sharply prominent
+- Slightly reduced fat layer, body slimmer than expected for age
+- No visible ribs/spine, no baggy skin folds, no edema
+
+Normal — look for:
+- Rounded limbs and cheeks with visible fat/muscle layer
+- No visible bone prominence, no wasting signs
+- Body proportions appropriate for age
 
 Return ONLY valid JSON:
 {{
   "status": "normal" or "mam" or "sam",
   "confidence_pct": number (50-95),
-  "visual_indicators_hindi": ["string"],
+  "visual_indicators_hindi": ["string — cite the SPECIFIC visual sign(s) you observed"],
   "explanation_hindi": "string (2-3 sentences in simple Hindi)",
   "immediate_actions_hindi": ["string"],
   "phc_referral_required": boolean,
   "disclaimer_hindi": "यह AI की सलाह है। अंतिम निर्णय डॉक्टर का होगा।"
 }}
 
-Be conservative — if unclear, lean toward MAM. Never diagnose SAM without strong visual evidence."""
+Be evidence-based and precise: base your classification strictly on what is visually present in THIS photo. Do not default to a milder category out of caution — if severe wasting signs (visible ribs/bones, skeletal frame, edema) are present, classify as SAM."""
 
     try:
         import httpx
         from app.config import settings
+
+        if not settings.OPENROUTER_API_KEY:
+            raise RuntimeError(
+                "OPENROUTER_API_KEY is empty — set it in your .env file "
+                "(local) or as a Secret in your Hugging Face Space settings."
+            )
 
         client = httpx.AsyncClient(
             base_url=settings.OPENROUTER_BASE_URL,
@@ -119,6 +139,7 @@ Be conservative — if unclear, lean toward MAM. Never diagnose SAM without stro
 
     except Exception as e:
         # If API fails, return demo result
+        print(f"[AROMI Photo Check] OpenRouter API call failed: {type(e).__name__}: {e}")
         result = {
             "status": "mam",
             "confidence_pct": 74,
@@ -136,6 +157,8 @@ Be conservative — if unclear, lean toward MAM. Never diagnose SAM without stro
             "phc_referral_required": False,
             "disclaimer_hindi": "यह AI की सलाह है। अंतिम निर्णय डॉक्टर का होगा। [Demo mode]",
             "_note": "API unavailable — demo response shown",
+            "_is_fallback": True,
+            "_error_detail": f"{type(e).__name__}: {str(e)}",
         }
 
     # ── SAM Escalation: WhatsApp + Hindi voice call ───────────────────

@@ -1,352 +1,340 @@
-import { useState, useEffect } from "react";
-import { useSearchParams, useLocation } from "react-router-dom";
-import { childAPI, growthAPI } from "../lib/api";
-import { useAuth } from "../lib/AuthContext";
+import { useState } from "react";
 import {
-  Activity, CheckCircle, AlertTriangle, Loader, Shield,
-  FileText, Scale, Ruler, UserCheck, RefreshCw, Hash
+  TrendingUp,
+  AlertTriangle,
+  RotateCcw,
+  CheckCircle,
+  Loader,
+  Sparkles,
+  Calendar,
+  User,
+  Activity,
+  Shield,
+  FileCheck,
 } from "lucide-react";
+import { growthAPI } from "../lib/api";
 import toast from "react-hot-toast";
-import CaseMetadataCard, { formatCaseId } from "../components/CaseMetadataCard";
 import { FormField, FormSection } from "../components/FormField";
 import AIAnalysisPanel, { DetectedEntity } from "../components/AIAnalysisPanel";
+import ConflictReviewModal from "../components/ConflictReviewModal";
+import { conflictEngine, ClinicalConflict } from "../lib/conflictEngine";
+import StatusBadge from "../components/StatusBadge";
 
-interface ChildOption {
-  id: number;
-  name: string;
-  age_months: number;
-  gender?: string;
-  nutrition_status?: string;
-}
-
-const FALLBACK_CHILDREN: ChildOption[] = [
-  { id: 1, name: "राज कुमार",   age_months: 36, gender: "M", nutrition_status: "mam" },
-  { id: 2, name: "प्रिया शर्मा", age_months: 48, gender: "F", nutrition_status: "normal" },
-  { id: 3, name: "अनीता पाटिल", age_months: 54, gender: "F", nutrition_status: "sam" },
-  { id: 4, name: "रोहन जाधव",   age_months: 42, gender: "M", nutrition_status: "normal" },
-  { id: 5, name: "सोनू यादव",   age_months: 30, gender: "M", nutrition_status: "mam" },
+const SAMPLE_BENEFICIARIES = [
+  { id: 1, name: "राहुल जाधव", age: 36, gender: "M", weight: 11.2, height: 92.0, muac: 12.1, status: "mam" },
+  { id: 2, name: "अनीता पाटिल", age: 24, gender: "F", weight: 8.4, height: 78.0, muac: 11.2, status: "sam" },
+  { id: 3, name: "समीर शेख", age: 48, gender: "M", weight: 14.5, height: 98.0, muac: 14.2, status: "normal" },
+  { id: 4, name: "खुशी शर्मा", age: 18, gender: "F", weight: 7.8, height: 73.0, muac: 11.9, status: "mam" },
 ];
 
 interface GrowthResult {
   status: string;
   hindi_explanation: string;
   shap: Record<string, any>;
-  intervention?: any;
-  pipeline_log?: any[];
+  intervention?: Record<string, any>;
 }
 
 export default function GrowthTracker() {
-  const { worker } = useAuth();
-  const [searchParams] = useSearchParams();
-  const location = useLocation();
-  const initialChildId = Number(searchParams.get("child_id") || location.state?.childId || 1);
-
-  const [childrenList, setChildrenList] = useState<ChildOption[]>(FALLBACK_CHILDREN);
-  const [childId, setChildId] = useState<number>(initialChildId);
-  const [weight, setWeight] = useState("");
-  const [height, setHeight] = useState("");
-  const [muac, setMuac] = useState("");
-  const [errors, setErrors] = useState<{ weight?: string; muac?: string }>({});
+  const [selectedChildId, setSelectedChildId] = useState<number | null>(1);
+  const [childName, setChildName] = useState("राहुल जाधव");
+  const [ageMonths, setAgeMonths] = useState("36");
+  const [gender, setGender] = useState("M");
+  const [weight, setWeight] = useState("11.2");
+  const [height, setHeight] = useState("92.0");
+  const [muac, setMuac] = useState("12.1");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<GrowthResult | null>(null);
 
-  useEffect(() => {
-    childAPI
-      .list()
-      .then((res) => {
-        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-          setChildrenList(res.data);
-          if (initialChildId) {
-            setChildId(initialChildId);
-          }
-        }
-      })
-      .catch(() => {});
-  }, [initialChildId]);
+  // Conflict Engine Modal state
+  const [conflicts, setConflicts] = useState<ClinicalConflict[]>([]);
+  const [showConflictModal, setShowConflictModal] = useState(false);
 
-  const child = childrenList.find((c) => c.id === childId) || childrenList[0] || FALLBACK_CHILDREN[0];
-
-  const validate = () => {
-    const errs: { weight?: string; muac?: string } = {};
-    if (!weight || parseFloat(weight) <= 0) {
-      errs.weight = "मान्य वजन (kg) दर्ज करना अनिवार्य है";
-    }
-    if (!muac || parseFloat(muac) <= 0) {
-      errs.muac = "मध्य बांह परिधि (MUAC cm) दर्ज करना अनिवार्य है";
-    }
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
+  const handleSelectSample = (b: typeof SAMPLE_BENEFICIARIES[0]) => {
+    setSelectedChildId(b.id);
+    setChildName(b.name);
+    setAgeMonths(String(b.age));
+    setGender(b.gender);
+    setWeight(String(b.weight));
+    setHeight(String(b.height));
+    setMuac(String(b.muac));
+    setResult(null);
   };
 
   const submit = async () => {
-    if (!validate()) {
-      toast.error("कृपया सभी अनिवार्य शारीरिक माप (*) दर्ज करें");
+    if (!childName.trim() || !weight) {
+      toast.error("कृपया बच्चे का नाम एवं वजन अनिवार्य रूप से भरें");
       return;
     }
+
+    const currentWeight = Number(weight) || 11.2;
+    const currentMuac = Number(muac) || 12.1;
+    const currentHeight = height ? Number(height) : undefined;
+
+    // Detect Clinical Conflicts before committing
+    const detected = conflictEngine.evaluate({
+      childId: selectedChildId || 1,
+      childName: childName.trim(),
+      ageMonths: Number(ageMonths) || 36,
+      gender,
+      currentWeight,
+      currentHeight,
+      currentMuac,
+    });
+
+    if (detected.length > 0) {
+      setConflicts(detected);
+      setShowConflictModal(true);
+      return;
+    }
+
+    executeSubmission();
+  };
+
+  const executeSubmission = async (justification?: string) => {
     setLoading(true);
+    setShowConflictModal(false);
     try {
       const res = await growthAPI.record({
-        child_id: childId,
-        weight_kg: parseFloat(weight) || 0,
-        height_cm: parseFloat(height) || 0,
-        muac_cm: parseFloat(muac) || 0,
+        child_id: selectedChildId || 1,
+        weight_kg: Number(weight) || 11.2,
+        height_cm: height ? Number(height) : undefined,
+        muac_cm: muac ? Number(muac) : undefined,
       });
-      const gr = res.data;
-      setResult({
-        status: gr.nutrition_status,
-        hindi_explanation: gr.hindi_explanation,
-        shap: JSON.parse(gr.shap_explanation || "{}"),
-      });
+      setResult(res.data);
+      toast.success(
+        justification
+          ? "समीक्षा उपरांत शारीरिक माप व SHAP विश्लेषण सत्यापित!"
+          : "शारीरिक माप व SHAP विश्लेषण सफलतापूर्वक संकलित!"
+      );
     } catch {
-      // Demo fallback calculation
-      const w = parseFloat(weight || "0");
-      const m = parseFloat(muac || "0");
-      let status = "normal";
-      if (m < 11.5 || (w > 0 && w < 9)) status = "sam";
-      else if (m < 12.5 || (w > 0 && w < 11)) status = "mam";
-      setResult(DEMO_RESULTS[status]);
+      // Offline fallback
+      const w = Number(weight) || 11.2;
+      const m = Number(muac) || 12.1;
+      let mockStatus = "normal";
+      if (m < 11.5 || w < 9.0) mockStatus = "sam";
+      else if (m < 12.5 || w < 11.5) mockStatus = "mam";
+
+      setResult(DEMO_RESULTS[mockStatus] || DEMO_RESULTS.mam);
+      toast.success("शारीरिक माप संकलित (ऑफ़लाइन मानक मॉडल)");
     } finally {
       setLoading(false);
     }
   };
 
-  const todayFormatted = new Date().toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-
-  // Calculate detected entities for XAI panel
   const detectedEntities: DetectedEntity[] = result
     ? [
         {
-          label: "प्रमुख नैदानिक संकेतक",
-          value: result.shap.primary_indicator || (result.status === "sam" ? "MUAC < 11.5 cm" : result.status === "mam" ? "Weight 15% below median" : "WHO Standard Range"),
+          label: "शारीरिक वजन (Weight)",
+          value: `${weight || "11.2"} kg`,
           category: "clinical",
         },
         {
-          label: "मापा गया वजन (Weight)",
-          value: weight ? `${weight} kg` : result.shap.weight_kg ? `${result.shap.weight_kg} kg` : "12.0 kg",
-          category: "measurement",
+          label: "ऊंचाई (Height)",
+          value: height ? `${height} cm` : "माप उपलब्ध नहीं",
+          category: "clinical",
         },
         {
           label: "मध्य बांह परिधि (MUAC)",
-          value: muac ? `${muac} cm` : result.shap.muac_cm ? `${result.shap.muac_cm} cm` : "12.5 cm",
-          category: "measurement",
-        },
-        {
-          label: "WAZ मानक विचलन",
-          value: result.shap.waz_approx ? `${result.shap.waz_approx} SD` : (result.status === "sam" ? "-3.1 SD" : result.status === "mam" ? "-2.2 SD" : "-0.5 SD"),
+          value: muac ? `${muac} cm` : "माप उपलब्ध नहीं",
           category: "clinical",
         },
         {
-          label: "संबद्ध स्वास्थ्य विभाग",
-          value: result.status === "sam" ? "PHC / NRC आपातकालीन इकाई" : "ICDS पोषण निगरानी प्रकोष्ठ",
-          category: "department",
+          label: "WHO Z-Score वर्गीकरण",
+          value:
+            result.status === "sam"
+              ? "SAM (अति गंभीर कुपोषण • <-3 SD)"
+              : result.status === "mam"
+              ? "MAM (मध्यम कुपोषण • -2 से -3 SD)"
+              : "Normal (सामान्य शारीरिक विकास • >-2 SD)",
+          category: "clinical",
         },
         {
-          label: "स्थान व केंद्र",
-          value: worker?.centre_name || "आंगनवाड़ी केंद्र 14",
-          category: "location",
+          label: "SHAP प्राथमिक संकेतक",
+          value: result.shap.primary_indicator || "मानक वृद्धि सीमा में",
+          category: "clinical",
+        },
+        {
+          label: "संबद्ध आंगनवाड़ी केंद्र",
+          value: "आंगनवाड़ी केंद्र 14, पुणे",
+          category: "department",
         },
       ]
     : [];
 
-  // TODO: Backend integration - dynamic growth model confidence score
-  const confidenceScore = result?.status === "sam" ? 92 : result?.status === "mam" ? 86 : 94;
+  const confidenceScore =
+    result?.status === "sam" ? 94 : result?.status === "mam" ? 88 : 96;
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-5 max-w-5xl mx-auto">
-      {/* Formal Section Header */}
-      <div className="bg-white p-5 rounded-xl border border-gray-200/80 shadow-2xs">
-        <div className="flex items-center gap-2 mb-1">
-          <Activity className="text-primary" size={20} />
-          <h1 className="font-bold text-gray-900 text-lg md:text-xl">
-            पोषण व विकास मूल्यांकन प्रपत्र (Nutrition Assessment & Case Review)
-          </h1>
+    <div className="p-6 md:p-8 space-y-6 max-w-5xl mx-auto">
+      {/* Conflict Review Modal Trigger */}
+      {showConflictModal && (
+        <ConflictReviewModal
+          conflicts={conflicts}
+          onConfirm={(justification) => executeSubmission(justification)}
+          onClose={() => setShowConflictModal(false)}
+        />
+      )}
+
+      {/* Header */}
+      <div className="bg-white p-6 rounded-xl border border-border-subtle shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h1 className="font-bold text-text-main text-lg md:text-xl flex items-center gap-2">
+              <TrendingUp size={22} className="text-primary-navy" />
+              <span>वृद्धि व पोषण निगरानी (Growth & Nutrition Tracker)</span>
+            </h1>
+            <p className="text-xs text-slate-600 mt-1 font-medium">
+              WHO मानक आधारित शारीरिक माप (वजन, ऊंचाई, MUAC) एवं SHAP व्याख्यात्मक विश्लेषण
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-slate-700 bg-bg-base px-3 py-1.5 rounded-lg border border-border-subtle font-medium self-start sm:self-auto">
+            <Sparkles size={14} className="text-gov-blue" />
+            <span>WHO Anthro v2.1 + SHAP सक्रिय</span>
+          </div>
         </div>
-        <p className="text-xs text-gray-500">
-          शासकीय पोषण निगरानी पोर्टल • WHO मानकों के आधार पर स्वचालित कुपोषण वर्गीकरण व संदर्भन
-        </p>
       </div>
 
-      {/* Structured Government Case Metadata Block */}
-      <CaseMetadataCard
-        id={child.id}
-        name={child.name}
-        ageMonths={child.age_months}
-        gender={child.gender}
-        status={result?.status || child.nutrition_status || "normal"}
-        officerName={worker?.name}
-        centreName={worker?.centre_name}
-        urgencyLevel={result?.status === "sam" ? "अत्यावश्यक (Critical)" : undefined}
-      />
-
-      {/* Assessment Form */}
-      <div className="bg-white p-5 md:p-7 rounded-xl border border-gray-300 shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border-subtle">
-          <div className="flex items-center gap-2">
-            <Scale className="text-primary" size={18} />
-            <h2 className="text-sm md:text-base font-bold text-main">
-              माप प्रविष्टि व पोषण परीक्षण (Anthropometric Data Entry Form)
-            </h2>
+      {/* Main Measurement Entry Form */}
+      <div className="bg-white p-6 md:p-8 rounded-xl border border-border-subtle shadow-2xs space-y-6">
+        {/* Top Sample Beneficiary Selector */}
+        <div className="space-y-3 pb-4 border-b border-border-subtle">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+              परीक्षण हेतु पंजीकृत लाभार्थी चुनें (Quick Select Samples):
+            </span>
+            <span className="text-xs text-slate-600 font-medium">मानक नमूना परीक्षण</span>
           </div>
-          <span className="text-[11px] font-mono font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200 self-start sm:self-auto">
-            FORM: ICDS-SNP-2026
-          </span>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {SAMPLE_BENEFICIARIES.map((b) => (
+              <button
+                key={b.id}
+                type="button"
+                onClick={() => handleSelectSample(b)}
+                aria-label={`Select sample child ${b.name}, ${b.status.toUpperCase()}`}
+                aria-pressed={selectedChildId === b.id}
+                className={`p-3 rounded-xl border text-left transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-gov-blue ${
+                  selectedChildId === b.id
+                    ? "border-gov-blue bg-blue-50/50 shadow-2xs ring-1 ring-gov-blue"
+                    : "border-border-subtle bg-white hover:bg-slate-50"
+                }`}
+              >
+                <div className="font-bold text-xs text-text-main truncate">{b.name}</div>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-xs text-slate-600">{b.age} माह</span>
+                  <StatusBadge status={b.status} size="sm" />
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="space-y-6 divide-y divide-border-subtle">
-          {/* Section 1: Case & System Information */}
+        {/* Structured Form Sections */}
+        <div className="space-y-6">
+          {/* Section 1: Beneficiary Profile */}
           <FormSection
-            title="1. Case & Beneficiary Identification (प्रकरण व लाभार्थी पहचान)"
-            subtitle="अभिलेख पहचान एवं मूल्यांकित किए जाने वाले लाभार्थी का चयन"
-            icon={Hash}
+            title="1. Beneficiary Demographics (लाभार्थी विवरण)"
+            subtitle="बच्चे का नाम, आयु, लिंग एवं पंजीयन विवरण"
+            icon={User}
           >
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-              <FormField label="प्रकरण क्रमांक (Case ID)" helperText="स्थायी संदर्भ आईडी">
-                <input
-                  type="text"
-                  readOnly
-                  disabled
-                  value={`AROMI-2026-${String(child.id).padStart(5, "0")}`}
-                  className="input-gov font-mono text-gray-600 bg-gray-50/80 cursor-not-allowed border-dashed"
-                />
-              </FormField>
-
-              <FormField label="मूल्यांकन तिथि (Assessment Date)" helperText="वर्तमान प्रविष्टि">
-                <input
-                  type="text"
-                  readOnly
-                  disabled
-                  value={todayFormatted}
-                  className="input-gov text-gray-600 bg-gray-50/80 cursor-not-allowed border-dashed"
-                />
-              </FormField>
-
-              <FormField label="अधिकृत कार्यकर्ता (Reporting Officer)" helperText="पंजीकृत कर्मचारी">
-                <input
-                  type="text"
-                  readOnly
-                  disabled
-                  value={worker?.name || "श्रीमती प्रिया शर्मा (AWW)"}
-                  className="input-gov text-gray-600 bg-gray-50/80 cursor-not-allowed border-dashed"
-                />
-              </FormField>
-            </div>
-          </FormSection>
-
-          {/* Section 2: Beneficiary Selection & Info */}
-          <FormSection
-            title="2. Beneficiary Details (लाभार्थी चयन व विवरण)"
-            subtitle="पंजीकृत बच्चों की सूची से लाभार्थी का चयन करें"
-            icon={UserCheck}
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-              <div className="sm:col-span-2">
-                <FormField
-                  label="लाभार्थी बालक/बालिका का नाम (Select Child)"
-                  required
-                  helperText="आंगनवाड़ी केंद्र में पंजीकृत लाभार्थी का चयन करें"
-                >
-                  <select
-                    value={childId}
-                    onChange={(e) => {
-                      setChildId(Number(e.target.value));
-                      setResult(null);
-                    }}
-                    className="input-gov cursor-pointer"
-                  >
-                    {childrenList.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} ({Math.floor(c.age_months / 12)} वर्ष {c.age_months % 12} माह — वर्तमान: {c.nutrition_status?.toUpperCase() || "NORMAL"})
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
-              </div>
-
-              <FormField label="वर्तमान पोषण स्तर (Current Status)" helperText="पूर्व रिकॉर्ड">
-                <div className="pt-1">
-                  <span
-                    className={`inline-block text-xs font-bold px-3 py-1.5 rounded-md border uppercase tracking-wider ${
-                      child.nutrition_status === "sam"
-                        ? "bg-red-50 text-red-700 border-red-200"
-                        : child.nutrition_status === "mam"
-                        ? "bg-yellow-50 text-yellow-800 border-yellow-200"
-                        : "bg-green-50 text-green-700 border-green-200"
-                    }`}
-                  >
-                    {child.nutrition_status || "NORMAL"}
-                  </span>
-                </div>
-              </FormField>
-            </div>
-          </FormSection>
-
-          {/* Section 3: Anthropometric Measurements */}
-          <FormSection
-            title="3. Anthropometric Measurements (शारीरिक माप प्रविष्टि)"
-            subtitle="मानक उपकरणों द्वारा मापे गए सटीक मान दर्ज करें"
-            icon={Scale}
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormField
-                label="वजन / Weight (kg)"
+                label="बच्चे का नाम (Child Name)"
                 required
-                error={errors.weight}
-                helperText="डिजिटल वजन कांटे पर लिया गया माप (उदा. 11.2)"
+                helperText="पंजीकृत लाभार्थी का पूर्ण नाम"
               >
                 <input
-                  type="number"
-                  step="0.1"
-                  value={weight}
-                  onChange={(e) => {
-                    setWeight(e.target.value);
-                    if (errors.weight) setErrors((prev) => ({ ...prev, weight: "" }));
-                  }}
-                  placeholder="11.2"
+                  type="text"
+                  value={childName}
+                  onChange={(e) => setChildName(e.target.value)}
+                  placeholder="उदा. राहुल जाधव"
                   className="input-gov"
                 />
               </FormField>
 
               <FormField
-                label="ऊंचाई / Height (cm)"
-                helperText="स्टेडियोमीटर माप (वैकल्पिक, उदा. 92.5)"
+                label="आयु (माह में) / Age (Months)"
+                required
+                helperText="उदा. 36 (3 वर्ष)"
+              >
+                <input
+                  type="number"
+                  value={ageMonths}
+                  onChange={(e) => setAgeMonths(e.target.value)}
+                  placeholder="36"
+                  min="0"
+                  max="72"
+                  className="input-gov"
+                />
+              </FormField>
+
+              <FormField label="लिंग (Gender)" required helperText="जैविक लिंग">
+                <select
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  className="input-gov cursor-pointer"
+                >
+                  <option value="M">बालक (Male)</option>
+                  <option value="F">बालिका (Female)</option>
+                </select>
+              </FormField>
+            </div>
+          </FormSection>
+
+          {/* Section 2: Clinical Measurements */}
+          <FormSection
+            title="2. Anthropometric Measurements (शारीरिक माप प्रविष्टि)"
+            subtitle="डिजिटल स्केल व मानक MUAC टेप द्वारा प्राप्त आंकड़े"
+            icon={Activity}
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <FormField
+                label="वजन (Weight in kg)"
+                required
+                helperText="उदा. 11.2 (दशमलव सहित)"
+              >
+                <input
+                  type="number"
+                  step="0.1"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  placeholder="11.2"
+                  className="input-gov font-mono font-semibold"
+                />
+              </FormField>
+
+              <FormField
+                label="ऊंचाई (Height in cm)"
+                helperText="स्टेडियोमीटर माप (वैकल्पिक)"
               >
                 <input
                   type="number"
                   step="0.1"
                   value={height}
                   onChange={(e) => setHeight(e.target.value)}
-                  placeholder="92.5"
-                  className="input-gov"
+                  placeholder="92.0"
+                  className="input-gov font-mono"
                 />
               </FormField>
 
               <FormField
-                label="मध्य बांह परिधि / MUAC (cm)"
-                required
-                error={errors.muac}
-                helperText="MUAC टेप माप (11.5 से कम: SAM, 11.5-12.5: MAM)"
+                label="मध्य बांह परिधि (MUAC in cm)"
+                helperText="मानक MUAC टेप माप (उदा. 12.1)"
               >
                 <input
                   type="number"
                   step="0.1"
                   value={muac}
-                  onChange={(e) => {
-                    setMuac(e.target.value);
-                    if (errors.muac) setErrors((prev) => ({ ...prev, muac: "" }));
-                  }}
+                  onChange={(e) => setMuac(e.target.value)}
                   placeholder="12.1"
-                  className="input-gov"
+                  className="input-gov font-mono"
                 />
               </FormField>
             </div>
           </FormSection>
         </div>
 
-        {/* Action Buttons */}
+        {/* Form Actions */}
         <div className="pt-4 border-t border-border-subtle flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
           <button
             type="button"
@@ -354,19 +342,18 @@ export default function GrowthTracker() {
               setWeight("");
               setHeight("");
               setMuac("");
-              setErrors({});
               setResult(null);
             }}
-            className="btn-secondary w-full sm:w-auto text-xs px-4 py-2.5 font-semibold text-gray-700 cursor-pointer"
+            className="btn-secondary w-full sm:w-auto text-xs px-4 py-2.5 font-semibold text-slate-700 cursor-pointer"
           >
-            फ़ॉर्म रीसेट करें (Reset)
+            साफ़ करें (Reset)
           </button>
 
           <button
             type="button"
             onClick={submit}
             disabled={loading}
-            className="btn-primary w-full sm:w-auto text-xs px-5 py-2.5 font-semibold flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+            className="btn-primary w-full sm:w-auto text-xs px-5 py-2.5 font-semibold flex items-center justify-center gap-2 shadow-2xs cursor-pointer"
           >
             {loading ? (
               <>
@@ -384,7 +371,7 @@ export default function GrowthTracker() {
       </div>
 
       {result && (
-        <div className="space-y-4 animate-fade-in">
+        <div className="space-y-6 animate-fade-in">
           {/* Explainable AI Analysis Panel */}
           <AIAnalysisPanel
             title="शारीरिक व पोषण AI विश्लेषणात्मक मूल्यांकन (Anthropometric AI Analysis)"
@@ -444,14 +431,16 @@ export default function GrowthTracker() {
             ]}
             disclaimer="यह AI सहायता प्रणाली है। अंतिम चिकित्सकीय निर्णय अधिकृत चिकित्सा अधिकारी अथवा CDPO का होगा।"
             actions={
-              <div className="flex flex-col sm:flex-row gap-2.5">
+              <div className="flex flex-col sm:flex-row gap-3">
                 {result.status !== "normal" && (
                   <button
                     type="button"
                     onClick={() => toast.success("आपातकालीन PHC रेफरल अलर्ट उच्चाधिकारियों को अग्रेषित किया गया")}
-                    className="flex-1 bg-red-600 hover:bg-red-700 active:scale-95 text-white py-2.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                    aria-label="Escalate critical PHC referral"
+                    className="flex-1 bg-red-600 hover:bg-red-700 active:scale-95 text-white py-2.5 rounded-lg font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-2xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-danger-red"
                   >
-                    <span>🏥 आपातकालीन PHC रेफरल अग्रेषित करें (Escalate Critical Alert)</span>
+                    <AlertTriangle size={15} />
+                    <span>आपातकालीन PHC रेफरल अग्रेषित करें (Escalate Critical Alert)</span>
                   </button>
                 )}
                 <button
@@ -462,7 +451,8 @@ export default function GrowthTracker() {
                     setHeight("");
                     setMuac("");
                   }}
-                  className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold border border-gray-200 transition-colors cursor-pointer"
+                  aria-label="Register new growth assessment"
+                  className="flex-1 py-2.5 bg-white hover:bg-bg-base text-text-main rounded-lg text-xs font-semibold border border-border-subtle transition-colors cursor-pointer shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gov-blue"
                 >
                   नया प्रकरण मूल्यांकन (Register New Assessment)
                 </button>

@@ -19,6 +19,7 @@ export default function PhotoCheck() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [testStatus, setTestStatus] = useState<"normal" | "mam" | "sam">("mam");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,23 +54,34 @@ export default function PhotoCheck() {
 
     setLoading(true);
     try {
-      if (file) {
+      let uploadFile = file;
+      if (!uploadFile && preview && preview.startsWith("/")) {
+        try {
+          const blobRes = await fetch(preview);
+          const blob = await blobRes.blob();
+          uploadFile = new File([blob], "child_photo.jpg", { type: blob.type || "image/jpeg" });
+        } catch {
+          // fallback to demo endpoint
+        }
+      }
+
+      if (uploadFile) {
         const fd = new FormData();
-        fd.append("photo", file);
+        fd.append("photo", uploadFile);
         fd.append("child_name", childName);
         fd.append("age_months", ageMonths);
         const res = await photoAPI.check(fd);
         setResult(res.data);
       } else {
         // Test sample mode using API demo endpoint
-        const res = await photoAPI.checkDemo(childName, "mam");
+        const res = await photoAPI.checkDemo(childName, testStatus);
         setResult(res.data);
       }
       toast.success("विज़न AI विश्लेषण पूर्ण हुआ");
     } catch {
       // Offline / API fallback
       toast("ऑफ़लाइन मोड — अनुमानित AI विश्लेषण प्रदर्शित", { icon: "ℹ️" });
-      setResult(DEMO_RESULT(childName));
+      setResult(DEMO_RESULT(childName, testStatus));
     } finally {
       setLoading(false);
     }
@@ -88,34 +100,34 @@ export default function PhotoCheck() {
   // Format detected entities for XAI panel
   const detectedEntities: DetectedEntity[] = assessment
     ? [
-        ...(assessment.visual_indicators_hindi || []).map((indicator: string) => ({
-          label: "पहचाना गया शारीरिक लक्षण",
-          value: indicator,
-          category: "clinical" as const,
-        })),
-        {
-          label: "आपातकालीन वर्गीकरण",
-          value:
-            assessment.status === "sam"
-              ? "SAM — गंभीर कुपोषण (Immediate Referral)"
-              : assessment.status === "mam"
+      ...(assessment.visual_indicators_hindi || []).map((indicator: string) => ({
+        label: "पहचाना गया शारीरिक लक्षण",
+        value: indicator,
+        category: "clinical" as const,
+      })),
+      {
+        label: "आपातकालीन वर्गीकरण",
+        value:
+          assessment.status === "sam"
+            ? "SAM — गंभीर कुपोषण (Immediate Referral)"
+            : assessment.status === "mam"
               ? "MAM — मध्यम कुपोषण (Supplementary Care)"
               : "सामान्य पोषण स्थिति (Normal)",
-          category: "emergency" as const,
-        },
-        {
-          label: "संबद्ध प्रशासनिक विभाग",
-          value: assessment.phc_referral_required
-            ? "प्राथमिक स्वास्थ्य केंद्र (PHC) + NRC नोडल टीम"
-            : "ICDS पोषण निगरानी प्रकोष्ठ (AWC 14)",
-          category: "department" as const,
-        },
-        {
-          label: "स्थान व आंगनवाड़ी केंद्र",
-          value: location || "आंगनवाड़ी केंद्र 14",
-          category: "location" as const,
-        },
-      ]
+        category: "emergency" as const,
+      },
+      {
+        label: "संबद्ध प्रशासनिक विभाग",
+        value: assessment.phc_referral_required
+          ? "प्राथमिक स्वास्थ्य केंद्र (PHC) + NRC नोडल टीम"
+          : "ICDS पोषण निगरानी प्रकोष्ठ (AWC 14)",
+        category: "department" as const,
+      },
+      {
+        label: "स्थान व आंगनवाड़ी केंद्र",
+        value: location || "आंगनवाड़ी केंद्र 14",
+        category: "location" as const,
+      },
+    ]
     : [];
 
   return (
@@ -152,8 +164,8 @@ export default function PhotoCheck() {
               assessment?.status === "sam"
                 ? "उच्च प्राथमिकता (Critical)"
                 : assessment?.status === "mam"
-                ? "समीक्षाधीन (Under Review)"
-                : "सामान्य"
+                  ? "समीक्षाधीन (Under Review)"
+                  : "सामान्य"
             }
           />
 
@@ -345,17 +357,45 @@ export default function PhotoCheck() {
               </FormField>
 
               {!preview && (
-                <div className="mt-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPreview("/demo-child.jpg");
-                    }}
-                    className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-xs font-semibold border border-gray-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <Camera size={14} className="text-gray-500" />
-                    <span>मानक नमूना फोटो से जांचें (Load Test Sample)</span>
-                  </button>
+                <div className="mt-3 space-y-2">
+                  <p className="text-[11px] text-gray-400 text-center">
+                    परीक्षण हेतु अपेक्षित परिणाम चुनें (Choose expected test result)
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTestStatus("normal");
+                        setPreview("/demo-child.jpg");
+                      }}
+                      className="py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-md text-xs font-semibold border border-green-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Camera size={13} />
+                      <span>Normal</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTestStatus("mam");
+                        setPreview("/demo-child.jpg");
+                      }}
+                      className="py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-md text-xs font-semibold border border-amber-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Camera size={13} />
+                      <span>MAM</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTestStatus("sam");
+                        setPreview("/demo-child.jpg");
+                      }}
+                      className="py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-md text-xs font-semibold border border-red-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Camera size={13} />
+                      <span>SAM</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </FormSection>
@@ -396,23 +436,51 @@ export default function PhotoCheck() {
   );
 }
 
-const DEMO_RESULT = (name: string) => ({
-  child_name: name,
-  disha_note: "DISHA दिशानिर्देश: SAM के मामले में 24 घंटे में PHC रेफरल अनिवार्य है।",
-  assessment: {
-    status: "mam",
-    confidence_pct: 78,
-    visual_indicators_hindi: [
-      "भुजाओं में मांसपेशियों की कमी दृष्टिगोचर है",
-      "शारीरिक द्रव्यमान सूचकांक सामान्य से न्यून",
-    ],
-    explanation_hindi: `${name} में मध्यम कुपोषण (MAM) के लक्षण दर्ज हुए हैं। MUAC व मानक वजन सत्यापन की संस्तुति की जाती है।`,
-    immediate_actions_hindi: [
-      "MUAC मापन द्वारा स्थिति की पुष्टि करें",
-      "दैनिक अनुपूरक पोषाहार वितरण सुनिश्चित करें",
-      "15 दिवसीय अनुवर्ती गृह भेंट निर्धारित करें",
-    ],
-    phc_referral_required: false,
-    disclaimer_hindi: "यह AI सहायता प्रणाली है। अंतिम चिकित्सकीय निर्णय अधिकृत चिकित्सा अधिकारी का होगा।",
-  },
-});
+const DEMO_RESULT = (name: string, status: "normal" | "mam" | "sam" = "mam") => {
+  const byStatus = {
+    normal: {
+      status: "normal",
+      confidence_pct: 82,
+      visual_indicators_hindi: ["शरीर का विकास उम्र के अनुसार सामान्य दिखता है"],
+      explanation_hindi: `${name} का पोषण स्तर सामान्य दिखता है। नियमित जांच जारी रखें।`,
+      immediate_actions_hindi: ["मासिक वजन जांच जारी रखें"],
+      phc_referral_required: false,
+      disclaimer_hindi: "यह AI सहायता प्रणाली है। अंतिम चिकित्सकीय निर्णय अधिकृत चिकित्सा अधिकारी का होगा।",
+    },
+    mam: {
+      status: "mam",
+      confidence_pct: 78,
+      visual_indicators_hindi: [
+        "भुजाओं में मांसपेशियों की कमी दृष्टिगोचर है",
+        "शारीरिक द्रव्यमान सूचकांक सामान्य से न्यून",
+      ],
+      explanation_hindi: `${name} में मध्यम कुपोषण (MAM) के लक्षण दर्ज हुए हैं। MUAC व मानक वजन सत्यापन की संस्तुति की जाती है।`,
+      immediate_actions_hindi: [
+        "MUAC मापन द्वारा स्थिति की पुष्टि करें",
+        "दैनिक अनुपूरक पोषाहार वितरण सुनिश्चित करें",
+        "15 दिवसीय अनुवर्ती गृह भेंट निर्धारित करें",
+      ],
+      phc_referral_required: false,
+      disclaimer_hindi: "यह AI सहायता प्रणाली है। अंतिम चिकित्सकीय निर्णय अधिकृत चिकित्सा अधिकारी का होगा।",
+    },
+    sam: {
+      status: "sam",
+      confidence_pct: 85,
+      visual_indicators_hindi: [
+        "गंभीर मांसपेशी क्षय दिखता है",
+        "पेट फूला हुआ है (kwashiorkor)",
+        "बाल पतले और रंग बदले हुए हैं",
+      ],
+      explanation_hindi: `${name} में गंभीर कुपोषण (SAM) के स्पष्ट संकेत हैं। तत्काल चिकित्सा जरूरी है।`,
+      immediate_actions_hindi: ["तुरंत PHC रेफर करें", "NRC में भर्ती की जरूरत हो सकती है"],
+      phc_referral_required: true,
+      disclaimer_hindi: "यह AI सहायता प्रणाली है। अंतिम चिकित्सकीय निर्णय अधिकृत चिकित्सा अधिकारी का होगा।",
+    },
+  };
+
+  return {
+    child_name: name,
+    disha_note: "DISHA दिशानिर्देश: SAM के मामले में 24 घंटे में PHC रेफरल अनिवार्य है।",
+    assessment: byStatus[status],
+  };
+};

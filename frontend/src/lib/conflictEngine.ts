@@ -32,6 +32,8 @@ export interface AssessmentInput {
   officerName?: string;
 }
 
+export type ClinicalConflict = ConflictItem;
+
 export interface ConflictItem {
   id: string;
   type: "duplicate" | "measurement" | "classification" | "urgent_followup";
@@ -394,6 +396,39 @@ export function checkUrgentFollowUpConflict(
 }
 
 // ─── Combined Conflict Detection Engine ───────────────────────────────────────
+
+
+export interface EvaluateInput {
+  childId: number;
+  childName: string;
+  ageMonths: number;
+  gender: string;
+  currentWeight?: number;
+  weightKg?: number;
+  currentHeight?: number;
+  heightCm?: number;
+  currentMuac?: number;
+  muacCm?: number;
+  assessmentDate?: string;
+  officerName?: string;
+}
+
+export const conflictEngine = {
+  evaluate: (input: EvaluateInput): ConflictItem[] => {
+    return runConflictEngine({
+      childId: input.childId,
+      childName: input.childName,
+      ageMonths: input.ageMonths,
+      gender: input.gender,
+      weightKg: input.currentWeight ?? input.weightKg ?? 0,
+      heightCm: input.currentHeight ?? input.heightCm ?? 0,
+      muacCm: input.currentMuac ?? input.muacCm ?? 0,
+      assessmentDate: input.assessmentDate,
+      officerName: input.officerName,
+    });
+  },
+  run: runConflictEngine,
+};
 
 export function runConflictEngine(input: AssessmentInput): ConflictItem[] {
   const conflicts: ConflictItem[] = [];

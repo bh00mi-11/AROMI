@@ -42,7 +42,7 @@ export default function Layout() {
     <div className="min-h-screen bg-bg-base flex flex-col md:flex-row w-full text-text-main">
       {/* Offline banner */}
       {offline && (
-        <div className="offline-bar fixed top-0 left-0 right-0 z-50 shadow-md">
+        <div className="offline-bar fixed top-0 left-0 right-0 z-50 shadow-xs" role="alert">
           📵 ऑफ़लाइन मोड — डेटा स्थानीय रूप से सुरक्षित है और सिंक होगा
         </div>
       )}
@@ -53,18 +53,18 @@ export default function Layout() {
       {/* Mobile Sticky Top Header */}
       <header className="md:hidden bg-primary-navy text-white px-4 py-3 flex items-center justify-between sticky top-0 z-20 shadow-xs">
         <div>
-          <div className="font-bold text-lg leading-tight">AROMI</div>
+          <div className="font-bold text-lg leading-tight tracking-tight">AROMI</div>
           <div className="text-xs text-slate-200">{worker?.centre_name || "केंद्र"}</div>
         </div>
         <div className="flex items-center gap-2">
           <SyncBadge />
-          <span className="text-xs text-slate-200">{worker?.name}</span>
+          <span className="text-xs text-slate-200 font-medium">{worker?.name}</span>
           <button
             onClick={() => {
               logout();
               navigate("/login");
             }}
-            className="p-1.5 hover:bg-gov-blue rounded transition-colors"
+            className="p-1.5 hover:bg-gov-blue rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
             title="लॉगआउट"
             aria-label="Logout"
           >
@@ -76,13 +76,13 @@ export default function Layout() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
         {/* Desktop Topbar */}
-        <header className="hidden md:flex items-center justify-between px-6 lg:px-8 py-3 bg-white border-b border-border-subtle sticky top-0 z-10">
+        <header className="hidden md:flex items-center justify-between px-6 lg:px-8 py-3.5 bg-white border-b border-border-subtle sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <div className="text-sm font-semibold text-text-main">
               केंद्र: <span className="text-primary-navy font-bold">{worker?.centre_name || "आंगनवाड़ी केंद्र"}</span>
             </div>
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-border-subtle"></span>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-slate-600 font-medium">
               AROMI एकीकृत बाल विकास सेवा (ICDS) प्रशासनिक पोर्टल
             </div>
           </div>
@@ -93,15 +93,16 @@ export default function Layout() {
               <div className="w-7 h-7 rounded-full bg-primary-navy/10 text-primary-navy flex items-center justify-center font-bold text-xs uppercase">
                 {worker?.name ? worker.name.charAt(0) : "A"}
               </div>
-              <span className="font-medium text-xs text-text-main">{worker?.name}</span>
+              <span className="font-semibold text-xs text-text-main">{worker?.name}</span>
             </div>
             <button
               onClick={() => {
                 logout();
                 navigate("/login");
               }}
-              className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-danger-red px-2.5 py-1.5 rounded-md hover:bg-red-50 transition-colors"
+              className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-danger-red px-2.5 py-1.5 rounded-lg hover:bg-red-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-danger-red"
               title="लॉगआउट"
+              aria-label="Logout from system"
             >
               <LogOut size={14} />
               <span>लॉगआउट</span>
@@ -110,13 +111,13 @@ export default function Layout() {
         </header>
 
         {/* Dynamic Main Body */}
-        <main className="flex-1 overflow-y-auto pb-20 md:pb-8 w-full max-w-7xl mx-auto">
+        <main className="flex-1 overflow-y-auto pb-24 md:pb-10 w-full max-w-7xl mx-auto" id="main-content">
           <Outlet />
         </main>
       </div>
 
       {/* Mobile Bottom Navigation — Scrollable */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 w-full bg-white border-t border-border-subtle z-30 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+      <nav aria-label="Mobile Navigation" className="md:hidden fixed bottom-0 left-0 right-0 w-full bg-white border-t border-border-subtle z-30 shadow-xs">
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex min-w-max px-1">
             {navItems.map(({ to, icon: Icon, label }) => (
@@ -125,13 +126,13 @@ export default function Layout() {
                 to={to}
                 end={to === "/"}
                 className={({ isActive }) =>
-                  `flex flex-col items-center py-2 px-3 gap-0.5 text-center transition-colors min-w-[56px] ${
-                    isActive ? "text-primary-navy font-semibold" : "text-gray-400 hover:text-gray-600"
+                  `flex flex-col items-center py-2 px-3 gap-0.5 text-center transition-colors min-w-[56px] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gov-blue ${
+                    isActive ? "text-primary-navy font-bold" : "text-slate-500 hover:text-text-main"
                   }`
                 }
               >
                 <Icon size={18} />
-                <span className="text-[9px] leading-tight whitespace-nowrap">{label}</span>
+                <span className="text-[10px] font-medium leading-tight whitespace-nowrap">{label}</span>
               </NavLink>
             ))}
           </div>

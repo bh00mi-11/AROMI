@@ -1,8 +1,10 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
     DATABASE_URL: str = "sqlite:///./aromi.db"
     JWT_SECRET: str = "change-me-in-production"
     JWT_ALGORITHM: str = "HS256"
@@ -26,9 +28,6 @@ class Settings(BaseSettings):
     # Alert target numbers (override in .env with real numbers)
     ALERT_PARENT_NUMBER: str = "+919876543210"
     ALERT_SUPERVISOR_NUMBER: str = "+919999999999"
-
-    class Config:
-        env_file = ".env"
 
 
 settings = Settings()

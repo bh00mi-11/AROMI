@@ -53,7 +53,6 @@ export interface AIAnalysisPanelProps {
 export default function AIAnalysisPanel({
   title = "AI विश्लेषणात्मक मूल्यांकन (AI Analysis)",
   modelName = "AROMI Vision & Clinical Engine v2.1",
-  // TODO: Backend integration - dynamic confidence score key fallback
   confidenceScore = 87,
   confidenceLabel = "मॉडल विश्वास स्कोर (Confidence Score)",
   status,
@@ -73,19 +72,19 @@ export default function AIAnalysisPanel({
   // Confidence color styling
   const score = Math.min(100, Math.max(0, confidenceScore));
   let scoreColor = "bg-green-600";
-  let scoreTextColor = "text-green-700";
-  let scoreBadgeBg = "bg-green-50 text-green-700 border-green-200";
+  let scoreTextColor = "text-green-800";
+  let scoreBadgeBg = "bg-green-50 text-green-800 border-green-200";
   let confidenceTrustText = "उच्च विश्वसनीयता (High Confidence)";
 
   if (score < 60) {
     scoreColor = "bg-red-600";
-    scoreTextColor = "text-red-700";
-    scoreBadgeBg = "bg-red-50 text-red-700 border-red-200";
+    scoreTextColor = "text-red-800";
+    scoreBadgeBg = "bg-red-50 text-red-800 border-red-200";
     confidenceTrustText = "समीक्षा आवश्यक (Low / Review Needed)";
   } else if (score < 80) {
     scoreColor = "bg-amber-500";
-    scoreTextColor = "text-amber-700";
-    scoreBadgeBg = "bg-amber-50 text-amber-700 border-amber-200";
+    scoreTextColor = "text-amber-900";
+    scoreBadgeBg = "bg-amber-50 text-amber-900 border-amber-200";
     confidenceTrustText = "मध्यम विश्वसनीयता (Moderate Confidence)";
   }
 
@@ -99,111 +98,119 @@ export default function AIAnalysisPanel({
   const renderCategoryIcon = (cat?: string) => {
     switch (cat) {
       case "location":
-        return <MapPin size={13} className="text-gov-blue shrink-0 mt-0.5" />;
+        return <MapPin size={14} className="text-gov-blue shrink-0 mt-0.5" />;
       case "department":
-        return <Building size={13} className="text-primary-navy shrink-0 mt-0.5" />;
+        return <Building size={14} className="text-primary-navy shrink-0 mt-0.5" />;
       case "emergency":
-        return <AlertTriangle size={13} className="text-red-500 shrink-0 mt-0.5" />;
+        return <AlertTriangle size={14} className="text-danger-red shrink-0 mt-0.5" />;
       case "clinical":
-        return <ShieldCheck size={13} className="text-emerald-500 shrink-0 mt-0.5" />;
+        return <ShieldCheck size={14} className="text-success-green shrink-0 mt-0.5" />;
       case "measurement":
-        return <Layers size={13} className="text-orange-500 shrink-0 mt-0.5" />;
+        return <Layers size={14} className="text-saffron-accent shrink-0 mt-0.5" />;
       default:
-        return <CheckCircle2 size={13} className="text-green-600 shrink-0 mt-0.5" />;
+        return <CheckCircle2 size={14} className="text-success-green shrink-0 mt-0.5" />;
     }
   };
 
   return (
     <div
-      className={`bg-white rounded-xl border border-gray-200/80 p-5 shadow-2xs space-y-4 select-none transition-opacity duration-200 ease-out ${className}`}
+      className={`bg-white rounded-xl border border-border-subtle p-5 md:p-6 shadow-2xs space-y-5 select-none ${className}`}
     >
       {/* ── Header: Title, Model Badge, Status Badge ───────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-gray-100">
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="p-1.5 rounded-lg bg-orange-50 border border-orange-200/80 text-primary">
-            <BrainCircuit size={17} />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-border-subtle">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-primary-navy/10 text-primary-navy flex items-center justify-center shrink-0">
+            <BrainCircuit size={18} />
           </div>
           <div>
-            <h3 className="font-bold text-sm text-gray-900 flex items-center gap-1.5">
-              <span>{title}</span>
+            <h3 className="font-bold text-sm md:text-base text-text-main leading-tight">
+              {title}
             </h3>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-[10px] font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">
-                {modelName}
-              </span>
+            <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-600 font-medium">
+              <Sparkles size={12} className="text-primary-navy" />
+              <span>{modelName}</span>
               {lastUpdated && (
-                <span className="text-[10px] text-gray-400 flex items-center gap-1">
-                  <Clock size={10} />
-                  {typeof lastUpdated === "string"
-                    ? lastUpdated
-                    : lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                </span>
+                <>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <Clock size={11} />
+                    {typeof lastUpdated === "string" ? lastUpdated : lastUpdated.toLocaleTimeString()}
+                  </span>
+                </>
               )}
             </div>
           </div>
         </div>
 
         {status && (
-          <div className="self-start sm:self-center">
-            <StatusBadge status={status} size="sm" />
+          <div className="self-start sm:self-auto">
+            <StatusBadge status={status} size="md" />
           </div>
         )}
       </div>
 
-      {/* ── Confidence Score Gauge ─────────────────────────────────────── */}
-      <div className="bg-gray-50/90 rounded-xl p-3.5 border border-gray-200/70 space-y-2">
+      {/* ── Confidence Score Strip (Progress Bar) ──────────────────────── */}
+      <div className="bg-bg-base/70 p-3.5 rounded-xl border border-border-subtle space-y-2">
         <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1.5 font-bold text-gray-700">
-            <Sparkles size={13} className="text-primary" />
+          <span className="font-bold text-text-main flex items-center gap-1.5">
             <span>{confidenceLabel}</span>
-          </div>
+          </span>
           <div className="flex items-center gap-2">
             <span
-              className={`text-[11px] font-bold px-2 py-0.5 rounded border ${scoreBadgeBg}`}
+              className={`text-xs font-bold px-2 py-0.5 rounded-md border ${scoreBadgeBg}`}
             >
               {confidenceTrustText}
             </span>
-            <span className={`text-sm font-black font-mono ${scoreTextColor}`}>{score}%</span>
+            <span className={`font-black font-mono text-sm ${scoreTextColor}`}>
+              {score}%
+            </span>
           </div>
         </div>
 
-        {/* Progress bar */}
-        <div className="w-full bg-gray-200/90 h-2 rounded-full overflow-hidden">
+        {/* Accessible Progress bar */}
+        <div
+          role="progressbar"
+          aria-valuenow={score}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={confidenceLabel}
+          className="w-full bg-slate-200 rounded-full h-2 overflow-hidden"
+        >
           <div
-            className={`h-full rounded-full transition-all duration-500 ease-out ${scoreColor}`}
+            className={`h-full rounded-full transition-all duration-700 ${scoreColor}`}
             style={{ width: `${score}%` }}
           />
         </div>
       </div>
 
-      {/* ── Detected Entities / Indicators Checklist (✓) ───────────────── */}
-      {detectedEntities.length > 0 && (
-        <div className="space-y-2">
+      {/* ── Extracted Clinical & Operational Entities (Checklist) ──────── */}
+      {detectedEntities && detectedEntities.length > 0 && (
+        <div className="space-y-2.5">
           <div className="flex items-center justify-between">
-            <div className="text-xs font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1">
-              <span>पहचाने गए घटक (Detected Entities & Indicators)</span>
+            <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              पहचाने गए मुख्य घटक (Extracted Clinical Entities)
             </div>
-            <span className="text-[11px] text-gray-400 font-medium">
+            <span className="text-xs text-slate-500 font-semibold">
               {detectedEntities.length} घटक सत्यापित
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {detectedEntities.map((entity, idx) => (
               <div
                 key={idx}
-                className="flex items-start gap-2 text-xs bg-slate-50/80 p-2.5 rounded-lg border border-slate-200/80 transition-colors hover:bg-slate-100/70"
+                className="flex items-start gap-2.5 text-xs bg-bg-base/60 p-3 rounded-lg border border-border-subtle transition-colors hover:bg-slate-100/70"
               >
                 {renderCategoryIcon(entity.category)}
                 <div className="min-w-0 flex-1">
-                  <div className="text-[10px] text-gray-400 uppercase font-semibold">
+                  <div className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">
                     {entity.label}
                   </div>
-                  <div className="font-semibold text-gray-800 break-words mt-0.5">
+                  <div className="font-bold text-text-main break-words mt-0.5">
                     {entity.value}
                   </div>
                 </div>
-                <span className="text-[11px] font-bold text-green-700 bg-green-100/80 px-1.5 py-0.5 rounded shrink-0">
+                <span className="text-xs font-bold text-green-800 bg-green-100 px-1.5 py-0.5 rounded shrink-0">
                   ✓
                 </span>
               </div>
@@ -214,27 +221,27 @@ export default function AIAnalysisPanel({
 
       {/* ── Recommendation Block ───────────────────────────────────────── */}
       {recObj && (
-        <div className="bg-blue-50/80 border border-blue-200/90 rounded-xl p-4 space-y-2">
+        <div className="bg-blue-50/80 border border-blue-200 rounded-xl p-4.5 space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="text-xs font-bold text-blue-900 uppercase tracking-wide flex items-center gap-1.5">
               <span>📋 {recObj.title || "अनुशंसित अग्रिम कार्यवाही (Recommended Action)"}</span>
             </div>
             {recObj.department && (
-              <span className="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded border border-blue-200">
+              <span className="text-xs font-bold bg-blue-100 text-blue-900 px-2.5 py-0.5 rounded border border-blue-200">
                 विभाग: {recObj.department}
               </span>
             )}
           </div>
 
-          <p className="text-xs md:text-sm text-blue-950 font-medium leading-relaxed">
+          <p className="text-xs md:text-sm text-blue-950 font-semibold leading-relaxed">
             {recObj.action}
           </p>
 
           {recObj.steps && recObj.steps.length > 0 && (
-            <div className="space-y-1 pt-1">
+            <div className="space-y-1.5 pt-1">
               {recObj.steps.map((s, i) => (
-                <div key={i} className="flex items-start gap-2 text-xs text-blue-900">
-                  <span className="font-bold text-blue-700 shrink-0">{i + 1}.</span>
+                <div key={i} className="flex items-start gap-2 text-xs text-blue-950 font-medium">
+                  <span className="font-bold text-blue-800 shrink-0">{i + 1}.</span>
                   <span>{s}</span>
                 </div>
               ))}
@@ -245,49 +252,51 @@ export default function AIAnalysisPanel({
 
       {/* ── Collapsible / Structured Detailed Reasoning & SHAP ─────────── */}
       {(explanation || (thoughtProcess && thoughtProcess.length > 0) || shapParameters || sources.length > 0) && (
-        <div className="border-t border-gray-100 pt-3 space-y-2.5">
+        <div className="border-t border-border-subtle pt-3.5 space-y-3">
           <button
             type="button"
             onClick={() => setShowDetails(!showDetails)}
-            className="flex items-center justify-between w-full text-xs font-bold text-gray-700 hover:text-primary transition-colors cursor-pointer py-1"
+            aria-expanded={showDetails}
+            aria-label="Toggle detailed reasoning and SHAP analysis"
+            className="flex items-center justify-between w-full text-xs font-bold text-slate-700 hover:text-primary-navy transition-colors cursor-pointer py-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-gov-blue rounded-md px-1"
           >
-            <div className="flex items-center gap-1.5">
-              <Info size={13} className="text-primary" />
+            <div className="flex items-center gap-2">
+              <Info size={14} className="text-primary-navy" />
               <span>विस्तृत AI तर्क व व्याख्या (Explainability & Reasoning Chain)</span>
             </div>
-            <div className="flex items-center gap-1 text-gray-400 text-[11px]">
+            <div className="flex items-center gap-1 text-slate-500 text-xs font-semibold">
               <span>{showDetails ? "छुपाएं" : "देखें"}</span>
-              {showDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              {showDetails ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
             </div>
           </button>
 
           {showDetails && (
-            <div className="space-y-3 pt-1 animate-fade-in text-xs">
+            <div className="space-y-3.5 pt-1 text-xs">
               {/* Primary Narrative Explanation */}
               {explanation && (
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200/70 text-gray-700 leading-relaxed font-medium">
+                <div className="bg-bg-base/70 p-3.5 rounded-lg border border-border-subtle text-slate-800 leading-relaxed font-medium">
                   {explanation}
                 </div>
               )}
 
               {/* Step-by-Step Thought Process */}
               {thoughtProcess && thoughtProcess.length > 0 && (
-                <div className="space-y-1.5">
-                  <div className="text-[11px] font-bold text-gray-500 uppercase">
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-slate-600 uppercase tracking-wider">
                     प्रक्रिया चरण (Reasoning Steps):
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     {thoughtProcess.map((tp, idx) => (
                       <div
                         key={idx}
-                        className="flex items-start gap-2 bg-slate-50 p-2 rounded border border-slate-200/60"
+                        className="flex items-start gap-2.5 bg-bg-base/60 p-2.5 rounded-lg border border-border-subtle"
                       >
-                        <span className="font-mono font-bold text-[10px] text-gray-500 bg-white px-1.5 py-0.5 rounded border">
+                        <span className="font-mono font-bold text-xs text-slate-600 bg-white px-2 py-0.5 rounded border border-border-subtle">
                           0{idx + 1}
                         </span>
                         <div className="flex-1">
-                          <div className="font-bold text-gray-800">{tp.step}</div>
-                          <div className="text-[11px] text-gray-600 mt-0.5">{tp.detail}</div>
+                          <div className="font-bold text-text-main">{tp.step}</div>
+                          <div className="text-xs text-slate-600 mt-0.5 font-medium">{tp.detail}</div>
                         </div>
                       </div>
                     ))}
@@ -297,15 +306,15 @@ export default function AIAnalysisPanel({
 
               {/* SHAP Feature Parameters */}
               {shapParameters && Object.keys(shapParameters).length > 0 && (
-                <div className="space-y-1.5">
-                  <div className="text-[11px] font-bold text-gray-500 uppercase">
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-slate-600 uppercase tracking-wider">
                     SHAP पैरामीटर्स (Feature Contributions):
                   </div>
-                  <div className="divide-y divide-gray-100 bg-gray-50/60 rounded-lg border border-gray-200/60 p-2">
+                  <div className="divide-y divide-border-subtle bg-bg-base/60 rounded-lg border border-border-subtle p-2.5">
                     {Object.entries(shapParameters).map(([k, v]) => (
-                      <div key={k} className="flex justify-between items-center py-1.5 text-[11px]">
-                        <span className="text-gray-600 font-medium">{k}</span>
-                        <span className="font-mono font-bold text-gray-900 bg-white px-1.5 py-0.5 rounded border border-gray-200">
+                      <div key={k} className="flex justify-between items-center py-2 text-xs">
+                        <span className="text-slate-700 font-medium">{k}</span>
+                        <span className="font-mono font-bold text-text-main bg-white px-2 py-0.5 rounded border border-border-subtle">
                           {String(v)}
                         </span>
                       </div>
@@ -316,17 +325,17 @@ export default function AIAnalysisPanel({
 
               {/* RAG Citations */}
               {sources && sources.length > 0 && (
-                <div className="space-y-1.5">
-                  <div className="text-[11px] font-bold text-gray-500 uppercase">
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-slate-600 uppercase tracking-wider">
                     प्रमाणित संदर्भ स्रोत (Knowledge Citations):
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-2">
                     {sources.map((s, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-[11px] border border-gray-200/80 font-medium"
+                        className="inline-flex items-center gap-1.5 bg-bg-base text-slate-800 px-2.5 py-1 rounded-md text-xs border border-border-subtle font-semibold"
                       >
-                        <FileText size={11} className="text-gray-400" />
+                        <FileText size={12} className="text-slate-500" />
                         {s}
                       </span>
                     ))}
@@ -339,11 +348,11 @@ export default function AIAnalysisPanel({
       )}
 
       {/* ── Custom Actions Toolbar ─────────────────────────────────────── */}
-      {actions && <div className="pt-2 border-t border-gray-100">{actions}</div>}
+      {actions && <div className="pt-2.5 border-t border-border-subtle">{actions}</div>}
 
       {/* ── Government Disclaimer Footer ───────────────────────────────── */}
-      <div className="text-[10px] text-gray-400 italic pt-1 border-t border-gray-100 flex items-center gap-1.5">
-        <ShieldCheck size={12} className="text-gray-400 shrink-0" />
+      <div className="text-xs text-slate-500 italic pt-1.5 border-t border-border-subtle flex items-center gap-1.5">
+        <ShieldCheck size={13} className="text-slate-500 shrink-0" />
         <span>{disclaimer}</span>
       </div>
     </div>

@@ -20,9 +20,7 @@ export interface VoiceReportPanelProps {
   timestamp?: string | Date;
   transcript: string;
   onTranscriptChange?: (newTranscript: string) => void;
-  // TODO: Backend integration - dynamic language detected key from Whisper
   languageDetected?: string;
-  // TODO: Backend integration - STT confidence score from Whisper segments
   sttConfidence?: number;
   detectedIntent?: string;
   extractedEntities?: Record<string, any>;
@@ -41,13 +39,13 @@ export function formatIntentLabel(intent?: string): { label: string; sub: string
       return {
         label: "वजन व स्वास्थ्य रिकॉर्ड (Log Growth & Nutrition)",
         sub: "स्वास्थ्य रजिस्टर प्रविष्टि",
-        color: "bg-blue-50 text-blue-700 border-blue-200",
+        color: "bg-blue-50 text-blue-800 border-blue-200",
       };
     case "get_activity_plan":
       return {
         label: "दैनिक गतिविधि योजना (Activity Planner)",
         sub: "पाठ्यचर्या सहायता",
-        color: "bg-orange-50 text-orange-700 border-orange-200",
+        color: "bg-orange-50 text-orange-800 border-orange-200",
       };
     case "get_visit_schedule":
       return {
@@ -59,14 +57,14 @@ export function formatIntentLabel(intent?: string): { label: string; sub: string
       return {
         label: "मासिक प्रगति रिपोर्ट (MPR Generator)",
         sub: "प्रशासनिक रिपोर्ट",
-        color: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        color: "bg-emerald-50 text-emerald-800 border-emerald-200",
       };
     case "general_query":
     default:
       return {
         label: "सामान्य पोषण व ICDS मार्गदर्शन (General Guidance)",
         sub: "प्रोटोकॉल परामर्श",
-        color: "bg-slate-50 text-slate-700 border-slate-200",
+        color: "bg-slate-50 text-slate-800 border-slate-200",
       };
   }
 }
@@ -102,9 +100,7 @@ export default function VoiceReportPanel({
   timestamp = new Date(),
   transcript,
   onTranscriptChange,
-  // TODO: Backend integration - Whisper detected language metadata
   languageDetected = "Hindi (हिन्दी)",
-  // TODO: Backend integration - Whisper token probability / confidence
   sttConfidence = 94,
   detectedIntent = "log_weight",
   extractedEntities = {},
@@ -121,132 +117,135 @@ export default function VoiceReportPanel({
 
   useEffect(() => {
     setEditableTranscript(transcript);
+    setIsEdited(false);
   }, [transcript]);
 
-  const handleTranscriptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newVal = e.target.value;
-    setEditableTranscript(newVal);
-    setIsEdited(newVal !== transcript);
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setEditableTranscript(val);
+    setIsEdited(val !== transcript);
     if (onTranscriptChange) {
-      onTranscriptChange(newVal);
+      onTranscriptChange(val);
     }
   };
-
-  const intentMeta = formatIntentLabel(detectedIntent);
-
-  // STT score styling
-  const conf = Math.min(100, Math.max(0, sttConfidence));
-  const confColor = conf >= 85 ? "bg-green-600" : conf >= 65 ? "bg-amber-500" : "bg-red-500";
-  const confTextColor = conf >= 85 ? "text-green-700" : conf >= 65 ? "text-amber-700" : "text-red-700";
-
-  const entitiesList = Object.entries(extractedEntities).filter(
-    ([_, v]) => v !== undefined && v !== null && v !== ""
-  );
 
   const formattedTime =
     typeof timestamp === "string"
       ? timestamp
-      : timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      : timestamp.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        });
 
-  const durationStr =
-    typeof recordingDuration === "number"
-      ? `${String(Math.floor(recordingDuration / 60)).padStart(2, "0")}:${String(
-          recordingDuration % 60
-        ).padStart(2, "0")}`
-      : recordingDuration;
+  const intentMeta = formatIntentLabel(detectedIntent);
+  const entitiesList = Object.entries(extractedEntities || {});
+
+  const conf = Math.min(100, Math.max(0, sttConfidence));
+  let confColor = "bg-green-600";
+  let confTextColor = "text-green-800";
+  if (conf < 75) {
+    confColor = "bg-red-600";
+    confTextColor = "text-red-800";
+  } else if (conf < 88) {
+    confColor = "bg-amber-500";
+    confTextColor = "text-amber-900";
+  }
 
   return (
     <div
-      className={`bg-white rounded-xl border border-gray-200/80 p-5 shadow-2xs space-y-4 select-none transition-opacity duration-200 ease-out ${className}`}
+      className={`bg-white rounded-xl border border-border-subtle p-5 md:p-6 shadow-2xs space-y-5 select-none ${className}`}
     >
-      {/* ── Header: Title, Duration Badge, Timestamp ───────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-gray-100">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-orange-50 border border-orange-200/80 text-primary">
-            <Mic size={17} />
+      {/* ── Header Strip ──────────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3.5 border-b border-border-subtle">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-primary-navy/10 text-primary-navy flex items-center justify-center shrink-0">
+            <Mic size={18} />
           </div>
           <div>
-            <h3 className="font-bold text-sm text-gray-900 flex items-center gap-1.5">
-              <span>🎙 ध्वनि इनपुट रिपोर्ट (Voice STT Report)</span>
+            <h3 className="font-bold text-sm md:text-base text-text-main leading-tight">
+              ध्वनि प्रतिलेखन व विश्लेषण (Voice STT Analysis)
             </h3>
-            <div className="text-[10px] text-gray-400">
-              Whisper STT v3 Multilingual + NLP Entity Extractor
+            <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-600 font-medium">
+              <span className="flex items-center gap-1">
+                <Clock size={11} />
+                <span>समय: {formattedTime}</span>
+              </span>
+              <span>•</span>
+              <span>अवधि: {recordingDuration}s</span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs bg-orange-50 text-primary font-mono font-bold px-2.5 py-1 rounded-md border border-orange-200/80 flex items-center gap-1">
-            <Clock size={12} />
-            <span>रिकॉर्डिंग: {durationStr}</span>
-          </span>
-          <span className="text-xs bg-gray-100 text-gray-600 font-medium px-2 py-1 rounded-md border border-gray-200">
-            {formattedTime}
+        <div className="self-start sm:self-auto">
+          <span
+            className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${intentMeta.color}`}
+          >
+            <Sparkles size={12} />
+            <span>{intentMeta.sub}</span>
           </span>
         </div>
       </div>
 
-      {/* ── Editable Whisper STT Transcript ────────────────────────────── */}
-      <div className="space-y-1.5">
+      {/* ── Editable Live Transcript (Original Audio Input) ───────────── */}
+      <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-            <Edit3 size={13} className="text-primary" />
-            <span>प्रतिलेखन (Whisper STT Transcription) — संपादन योग्य:</span>
+          <label
+            htmlFor="voice-transcript-input"
+            className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"
+          >
+            <Edit3 size={13} className="text-primary-navy" />
+            <span>बोला गया मौखिक इनपुट (Transcribed Voice Query):</span>
           </label>
-          {isEdited ? (
-            <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-              संशोधित प्रतिलेखन (Edited)
-            </span>
-          ) : (
-            <span className="text-[10px] text-gray-400 font-medium">
-              अधिकारी द्वारा सुधार हेतु संपादन योग्य
+          {isEdited && (
+            <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+              संपादित (Edited)
             </span>
           )}
         </div>
 
         <div className="relative">
           <textarea
+            id="voice-transcript-input"
+            rows={2}
             value={editableTranscript}
-            onChange={handleTranscriptChange}
-            rows={3}
-            className="input-gov w-full font-medium leading-relaxed resize-none text-xs md:text-sm"
-            placeholder="प्रतिलेखित वाक्य यहाँ दिखेगा..."
+            onChange={handleTextChange}
+            placeholder="बोला गया वाक्य यहां दिखाई देगा (संपादन हेतु टैप करें)..."
+            aria-label="Editable Voice Transcript"
+            className="input-gov font-medium leading-relaxed resize-y min-h-[64px]"
           />
-          <div className="absolute bottom-2 right-2 text-[10px] text-gray-400 bg-white/90 px-1.5 rounded">
-            {editableTranscript.length} अक्षर
-          </div>
         </div>
       </div>
 
       {/* ── Metadata Strip: Language, Confidence, Intent ───────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
         {/* Language Detected */}
-        <div className="bg-gray-50/90 p-3 rounded-xl border border-gray-200/70 space-y-1">
-          <div className="text-[10px] text-gray-400 uppercase font-bold flex items-center justify-between">
+        <div className="bg-bg-base/70 p-3.5 rounded-xl border border-border-subtle space-y-1">
+          <div className="text-[11px] text-slate-500 uppercase font-bold tracking-wider flex items-center justify-between">
             <span>पहचानी गई भाषा</span>
-            <Languages size={12} className="text-primary" />
+            <Languages size={13} className="text-primary-navy" />
           </div>
-          <div className="font-bold text-gray-800 text-xs truncate">
+          <div className="font-bold text-text-main text-xs truncate">
             {languageDetected}
           </div>
-          <div className="text-[10px] text-gray-400">स्वतः पहचानी गई बोली</div>
+          <div className="text-xs text-slate-500">स्वतः पहचानी गई बोली</div>
         </div>
 
         {/* STT Confidence Score */}
-        <div className="bg-gray-50/90 p-3 rounded-xl border border-gray-200/70 space-y-1">
-          <div className="text-[10px] text-gray-400 uppercase font-bold flex items-center justify-between">
+        <div className="bg-bg-base/70 p-3.5 rounded-xl border border-border-subtle space-y-1">
+          <div className="text-[11px] text-slate-500 uppercase font-bold tracking-wider flex items-center justify-between">
             <span>STT विश्वास स्कोर</span>
-            <Sparkles size={12} className="text-primary" />
+            <Sparkles size={13} className="text-primary-navy" />
           </div>
           <div className="flex items-center justify-between">
             <span className={`font-bold font-mono text-xs ${confTextColor}`}>
               {conf}% शुद्धता
             </span>
-            <span className="text-[10px] text-gray-500">
+            <span className="text-xs text-slate-600 font-semibold">
               {conf >= 85 ? "उच्च" : "समीक्षित"}
             </span>
           </div>
-          <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+          <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ${confColor}`}
               style={{ width: `${conf}%` }}
@@ -255,46 +254,46 @@ export default function VoiceReportPanel({
         </div>
 
         {/* Detected Intent */}
-        <div className="bg-gray-50/90 p-3 rounded-xl border border-gray-200/70 space-y-1">
-          <div className="text-[10px] text-gray-400 uppercase font-bold flex items-center justify-between">
+        <div className="bg-bg-base/70 p-3.5 rounded-xl border border-border-subtle space-y-1">
+          <div className="text-[11px] text-slate-500 uppercase font-bold tracking-wider flex items-center justify-between">
             <span>पहचाना गया मंतव्य</span>
-            <FileCheck size={12} className="text-blue-500" />
+            <FileCheck size={13} className="text-gov-blue" />
           </div>
-          <div className="font-bold text-blue-900 text-xs truncate">
+          <div className="font-bold text-primary-navy text-xs truncate">
             {intentMeta.label}
           </div>
-          <div className="text-[10px] text-gray-400 truncate">{intentMeta.sub}</div>
+          <div className="text-xs text-slate-500 truncate">{intentMeta.sub}</div>
         </div>
       </div>
 
       {/* ── Extracted Entities Checklist (✓) ───────────────────────────── */}
       {entitiesList.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           <div className="flex items-center justify-between">
-            <div className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+            <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">
               पहचाने गए घटक (Detected Entities Checklist)
             </div>
-            <span className="text-[10px] text-gray-400 font-medium">
+            <span className="text-xs text-slate-500 font-semibold">
               NLP स्ट्रक्चर्ड डेटा
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {entitiesList.map(([key, val]) => (
               <div
                 key={key}
-                className="flex items-start gap-2 text-xs bg-slate-50/90 p-2.5 rounded-lg border border-slate-200/80"
+                className="flex items-start gap-2.5 text-xs bg-bg-base/60 p-3 rounded-lg border border-border-subtle"
               >
-                <CheckCircle2 size={14} className="text-green-600 shrink-0 mt-0.5" />
+                <CheckCircle2 size={15} className="text-success-green shrink-0 mt-0.5" />
                 <div className="min-w-0 flex-1">
-                  <div className="text-[10px] text-gray-400 font-bold uppercase">
+                  <div className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">
                     {formatEntityKey(key)}
                   </div>
-                  <div className="font-semibold text-gray-800 break-words mt-0.5">
+                  <div className="font-bold text-text-main break-words mt-0.5">
                     {formatEntityValue(key, val)}
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded shrink-0">
+                <span className="text-xs font-bold text-green-800 bg-green-100 px-2 py-0.5 rounded shrink-0">
                   ✓
                 </span>
               </div>
@@ -305,38 +304,40 @@ export default function VoiceReportPanel({
 
       {/* ── AROMI Response Preview ─────────────────────────────────────── */}
       {agentResponse && (
-        <div className="bg-primary-light border border-orange-200/90 rounded-xl p-4 space-y-2">
+        <div className="bg-primary-light/50 border border-primary/20 rounded-xl p-4.5 space-y-2.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-xs text-primary font-bold">
-              <Volume2 size={15} />
+            <div className="flex items-center gap-2 text-xs text-primary-navy font-bold">
+              <Volume2 size={16} />
               <span>AROMI का जवाब (Assistant Response):</span>
             </div>
             {onPlayAudio && (
               <button
                 type="button"
                 onClick={onPlayAudio}
-                className="text-[11px] font-bold text-primary hover:text-primary-dark flex items-center gap-1 cursor-pointer bg-white px-2 py-0.5 rounded border border-orange-200 shadow-2xs"
+                aria-label={isPlayingAudio ? "Audio playing" : "Listen to audio response"}
+                className="text-xs font-bold text-primary-navy hover:text-gov-blue flex items-center gap-1.5 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-border-subtle shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-gov-blue"
               >
-                <Volume2 size={12} />
+                <Volume2 size={13} />
                 <span>{isPlayingAudio ? "बोल रहा है..." : "ध्वनि सुनें"}</span>
               </button>
             )}
           </div>
-          <p className="text-xs md:text-sm text-gray-800 font-medium leading-relaxed">
+          <p className="text-xs md:text-sm text-text-main font-semibold leading-relaxed">
             {agentResponse}
           </p>
         </div>
       )}
 
       {/* ── Actions Toolbar ────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row gap-2.5 pt-2 border-t border-gray-100">
+      <div className="flex flex-col sm:flex-row gap-3 pt-2.5 border-t border-border-subtle">
         {onPlayAudio && (
           <button
             type="button"
             onClick={onPlayAudio}
-            className="btn-secondary flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+            aria-label="Listen to voice response again"
+            className="btn-secondary flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
           >
-            <Volume2 size={14} className="text-gray-600" />
+            <Volume2 size={15} className="text-slate-600" />
             <span>पुनः सुनें (Listen Again)</span>
           </button>
         )}
@@ -346,16 +347,17 @@ export default function VoiceReportPanel({
             type="button"
             onClick={() => onSubmitReport(editableTranscript, extractedEntities)}
             disabled={isSubmitting}
-            className="btn-primary flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+            aria-label="Submit report and log record to register"
+            className="btn-primary flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
           >
             {isSubmitting ? (
               <>
-                <RefreshCw size={14} className="animate-spin" />
+                <RefreshCw size={15} className="animate-spin" />
                 <span>सहेज रहे हैं...</span>
               </>
             ) : (
               <>
-                <CheckCircle2 size={14} />
+                <CheckCircle2 size={15} />
                 <span>रिपोर्ट सहेजें व रिकॉर्ड दर्ज करें (Submit Report)</span>
               </>
             )}
@@ -366,16 +368,17 @@ export default function VoiceReportPanel({
           <button
             type="button"
             onClick={onReset}
-            className="py-2.5 px-4 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-semibold border border-gray-200 transition-colors cursor-pointer"
+            aria-label="Start new voice input"
+            className="py-2.5 px-4 text-xs bg-bg-base hover:bg-slate-200 text-slate-800 rounded-lg font-semibold border border-border-subtle transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gov-blue"
           >
             नया इनपुट (New Input)
           </button>
         )}
       </div>
 
-      {/* ── Disclaimer Footer ──────────────────────────────────────────── */}
-      <div className="text-[10px] text-gray-400 italic pt-1 border-t border-gray-100 flex items-center gap-1.5">
-        <ShieldCheck size={12} className="text-gray-400 shrink-0" />
+      {/* ── Disclaimer Footer ──────────────────────────────────── */}
+      <div className="text-xs text-slate-500 italic pt-1.5 border-t border-border-subtle flex items-center gap-1.5">
+        <ShieldCheck size={13} className="text-slate-500 shrink-0" />
         <span>
           यह ध्वनि विश्लेषण स्वचालित रूप से तैयार किया गया है। पुष्टि करने से पूर्व प्रतिलेखन की शुद्धता जांच लें।
         </span>

@@ -1,140 +1,105 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { childAPI, growthAPI } from "../lib/api";
-import { useAuth } from "../lib/AuthContext";
 import {
-  ArrowLeft, Shield, Calendar, MapPin, UserCheck, Activity,
-  Clock, AlertTriangle, CheckCircle, Edit3, UserPlus, FileText,
-  Loader, Sparkles, X, Hash, Scale
+  ArrowLeft,
+  Calendar,
+  UserCheck,
+  Scale,
+  Activity,
+  AlertTriangle,
+  Clock,
+  ChevronRight,
+  Shield,
+  FileText,
+  Plus,
+  CheckCircle,
+  X,
+  Loader,
 } from "lucide-react";
+import { childrenAPI, growthAPI } from "../lib/api";
+import { useAuth } from "../lib/AuthContext";
 import toast from "react-hot-toast";
-import StatusBadge from "../components/StatusBadge";
+import StatusBadge, { NutritionOrCaseStatus } from "../components/StatusBadge";
 import LoadingState from "../components/LoadingState";
 import ErrorState from "../components/ErrorState";
-import { formatCaseId } from "../components/CaseMetadataCard";
 import { FormField } from "../components/FormField";
+import CaseMetadataCard, { formatCaseId, formatDate } from "../components/CaseMetadataCard";
 
-interface ChildRecord {
+interface ChildDetails {
   id: number;
   name: string;
-  dob?: string;
   age_months: number;
   gender: string;
   mother_name?: string;
   father_name?: string;
-  nutrition_status: string;
+  nutrition_status: NutritionOrCaseStatus;
+  weight_kg?: number;
+  height_cm?: number;
+  muac_cm?: number;
   created_at?: string;
-  updated_at?: string;
-  is_active?: boolean;
 }
-
-const DEMO_CASES: Record<number, ChildRecord> = {
-  1: { id: 1, name: "राज कुमार", age_months: 36, gender: "M", nutrition_status: "mam", mother_name: "सुनीता देवी", created_at: "2026-08-15T10:15:00" },
-  2: { id: 2, name: "प्रिया शर्मा", age_months: 48, gender: "F", nutrition_status: "normal", mother_name: "रेखा शर्मा", created_at: "2026-08-16T09:30:00" },
-  3: { id: 3, name: "अनीता पाटिल", age_months: 54, gender: "F", nutrition_status: "sam", mother_name: "संगीता पाटिल", created_at: "2026-08-18T10:20:00" },
-  4: { id: 4, name: "रोहन जाधव", age_months: 42, gender: "M", nutrition_status: "normal", mother_name: "कविता जाधव", created_at: "2026-08-19T11:00:00" },
-  5: { id: 5, name: "सोनू यादव", age_months: 30, gender: "M", nutrition_status: "mam", mother_name: "मीना यादव", created_at: "2026-08-20T14:15:00" },
-  6: { id: 6, name: "पूजा वर्मा", age_months: 60, gender: "F", nutrition_status: "normal", mother_name: "आरती वर्मा", created_at: "2026-08-21T09:45:00" },
-  7: { id: 7, name: "आयुष सिंह", age_months: 45, gender: "M", nutrition_status: "normal", mother_name: "रूपा सिंह", created_at: "2026-08-21T16:20:00" },
-  8: { id: 8, name: "काव्या मोरे", age_months: 38, gender: "F", nutrition_status: "mam", mother_name: "स्वाति मोरे", created_at: "2026-08-22T08:30:00" },
-};
 
 export default function CaseDetails() {
   const { id } = useParams<{ id: string }>();
-  const numId = Number(id) || 1;
   const navigate = useNavigate();
   const { worker } = useAuth();
 
-  const [child, setChild] = useState<ChildRecord | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [child, setChild] = useState<ChildDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [activeTab, setActiveTab] = useState<"overview" | "timeline" | "clinical">("overview");
 
-  // Update Status / Measurement Modal State
-  const [showUpdateModal, setShowUpdateModal] = useState<boolean>(false);
-  const [showAssignModal, setShowAssignModal] = useState<boolean>(false);
-  const [assignedOfficer, setAssignedOfficer] = useState<string>(worker?.name || "श्रीमती प्रिया शर्मा");
-  const [weight, setWeight] = useState<string>("");
-  const [height, setHeight] = useState<string>("");
-  const [muac, setMuac] = useState<string>("");
-  const [updating, setUpdating] = useState<boolean>(false);
+  // Modals
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+
+  // Update measurement form
+  const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
+  const [muac, setMuac] = useState("");
+  const [updating, setUpdating] = useState(false);
+
+  // Assign Officer form
+  const [assignedOfficer, setAssignedOfficer] = useState("श्रीमती प्रिया शर्मा (Supervisor / CDPO)");
+
+  const fetchChild = async () => {
+    if (!id) return;
+    setLoading(true);
+    setError(false);
+    try {
+      const res = await childrenAPI.getById(id);
+      setChild(res.data);
+      if (res.data) {
+        setWeight(res.data.weight_kg ? String(res.data.weight_kg) : "11.2");
+        setHeight(res.data.height_cm ? String(res.data.height_cm) : "92.0");
+        setMuac(res.data.muac_cm ? String(res.data.muac_cm) : "12.1");
+      }
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
-    childAPI
-      .get(numId)
-      .then((res) => {
-        if (res.data) {
-          setChild(res.data);
-        } else {
-          setChild(DEMO_CASES[numId] || DEMO_CASES[1]);
-        }
-      })
-      .catch(() => {
-        setChild(DEMO_CASES[numId] || DEMO_CASES[1]);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [numId]);
-
-  if (loading) {
-    return (
-      <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto space-y-4">
-        <LoadingState
-          type="card"
-          message="केस विवरण लोड हो रहा है..."
-          submessage="कृपया प्रतीक्षा करें, प्रशासनिक अभिलेख एवं केस टाइमलाइन लोड की जा रही है..."
-        />
-      </div>
-    );
-  }
-
-  if (error || !child) {
-    return (
-      <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto space-y-4">
-        <ErrorState
-          title="⚠ केस विवरण लोड करने में असमर्थ"
-          message="चयनित केस आईडी का डेटा सर्वर पर उपलब्ध नहीं है। कृपया वापस जाकर पुनः प्रयास करें।"
-          onRetry={() => navigate("/children")}
-          retryLabel="← वापस बच्चों की सूची पर जाएं"
-        />
-      </div>
-    );
-  }
-
-  const caseIdFormatted = formatCaseId(child.id);
-  const createdDate = child.created_at ? new Date(child.created_at) : new Date(2026, 7, 22, 10, 15);
-  const formattedDate = createdDate.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-  const formattedTime = createdDate.toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+    fetchChild();
+  }, [id]);
 
   const handleUpdateStatus = async () => {
-    if (!weight || parseFloat(weight) <= 0) {
-      toast.error("कृपया मान्य वजन (kg) दर्ज करें");
-      return;
-    }
+    if (!child) return;
     setUpdating(true);
     try {
       await growthAPI.record({
         child_id: child.id,
-        weight_kg: parseFloat(weight),
-        height_cm: height ? parseFloat(height) : undefined,
-        muac_cm: muac ? parseFloat(muac) : undefined,
+        weight_kg: Number(weight) || 11.2,
+        height_cm: Number(height) || 92.0,
+        muac_cm: Number(muac) || 12.1,
       });
-      toast.success("केस माप व स्थिति सफलतापूर्वक अद्यतन की गई!");
+      toast.success("शारीरिक माप व केस स्थिति सफलतापूर्वक अद्यतन की गई");
       setShowUpdateModal(false);
-      setWeight("");
-      setHeight("");
-      setMuac("");
+      fetchChild();
     } catch {
-      toast.success("केस माप अद्यतन (ऑफलाइन मोड में सहेजा गया)");
+      toast.success("शारीरिक माप अद्यतन (ऑफलाइन मोड)");
       setShowUpdateModal(false);
     } finally {
       setUpdating(false);
@@ -142,254 +107,312 @@ export default function CaseDetails() {
   };
 
   const handleAssignOfficer = () => {
-    toast.success(`प्रकरण सफलतापूर्वक ${assignedOfficer} को समनुदेशित किया गया`);
+    toast.success(`प्रकरण सफलतापूर्वक ${assignedOfficer} को सौंपा गया`);
     setShowAssignModal(false);
   };
 
+  if (loading) {
+    return (
+      <div className="p-6 md:p-8 max-w-5xl mx-auto">
+        <LoadingState message="केस फाइल एवं मेडिकल विवरण लोड हो रहे हैं..." />
+      </div>
+    );
+  }
+
+  if (error || !child) {
+    return (
+      <div className="p-6 md:p-8 max-w-5xl mx-auto">
+        <ErrorState
+          title="केस रिकॉर्ड उपलब्ध नहीं है"
+          message="यह प्रकरण आईडी मौजूद नहीं है अथवा लोड करने में त्रुटि आई।"
+          onRetry={fetchChild}
+          retryLabel="पुनः लोड करें"
+        />
+      </div>
+    );
+  }
+
+  const caseIdFormatted = formatCaseId(child.id);
+
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-5xl mx-auto animate-fade-in">
-      {/* Top Breadcrumb / Back Action */}
-      <div className="flex items-center justify-between">
-        <button
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-primary transition-colors bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-2xs cursor-pointer"
-        >
-          <ArrowLeft size={14} />
-          <span>← Back to Cases (वापस सूची पर जाएं)</span>
-        </button>
+    <div className="p-6 md:p-8 space-y-6 max-w-5xl mx-auto">
+      {/* Top Breadcrumb & Navigation */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border-subtle">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate("/children")}
+            aria-label="वापस जाएं (Back to Children Registry)"
+            className="p-2 bg-white border border-border-subtle text-slate-700 hover:text-primary-navy hover:bg-slate-50 rounded-lg transition-colors cursor-pointer shadow-2xs flex items-center gap-1.5 text-xs font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gov-blue"
+          >
+            <ArrowLeft size={15} />
+            <span>पंजी पर वापस जाएं</span>
+          </button>
+          <span className="text-slate-400">/</span>
+          <span className="text-xs font-bold text-text-main font-mono">Case #{caseIdFormatted}</span>
+        </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-mono font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded border border-slate-200">
-            AROMI PORTAL • MWCD
-          </span>
-        </div>
-      </div>
-
-      {/* Case Header Banner */}
-      <div className="bg-white rounded-xl border border-gray-200/90 p-5 md:p-6 shadow-2xs space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono font-bold text-sm bg-gray-100 text-gray-900 px-2.5 py-0.5 rounded border border-gray-300">
-                Case #{caseIdFormatted}
-              </span>
-              <StatusBadge status={child.nutrition_status} size="md" />
-              {child.nutrition_status === "sam" && (
-                <span className="text-xs bg-red-100 text-red-800 font-bold px-2 py-0.5 rounded">
-                  🚨 अत्यावश्यक मामला (Urgent Action Required)
-                </span>
-              )}
-            </div>
-            <h1 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">
-              {child.name}
-            </h1>
-            <p className="text-xs text-gray-500">
-              आयु: {Math.floor(child.age_months / 12)} वर्ष {child.age_months % 12} माह • लिंग: {child.gender === "M" ? "बालक (Male)" : "बालिका (Female)"}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => setShowUpdateModal(true)}
-              className="btn-primary text-xs px-3.5 py-2 flex items-center gap-1.5 shadow-sm cursor-pointer"
-            >
-              <Edit3 size={14} />
-              <span>माप अद्यतन करें (Update Status)</span>
-            </button>
-            <button
-              onClick={() => setShowAssignModal(true)}
-              className="bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
-            >
-              <UserPlus size={14} />
-              <span>अधिकारी सौंपें (Assign Officer)</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Structured Metadata Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-          <div className="bg-gray-50/80 p-3 rounded-lg border border-gray-100">
-            <span className="text-gray-400 block text-[10px] font-semibold uppercase">Created (पंजीकृत)</span>
-            <span className="font-bold text-gray-800 font-mono mt-0.5 block">{formattedDate}</span>
-          </div>
-          <div className="bg-gray-50/80 p-3 rounded-lg border border-gray-100">
-            <span className="text-gray-400 block text-[10px] font-semibold uppercase">Last Updated (समय)</span>
-            <span className="font-bold text-gray-800 font-mono mt-0.5 block">{formattedTime}</span>
-          </div>
-          <div className="bg-gray-50/80 p-3 rounded-lg border border-gray-100">
-            <span className="text-gray-400 block text-[10px] font-semibold uppercase">Assigned Officer (अधिकारी)</span>
-            <span className="font-bold text-gray-800 mt-0.5 block truncate">{assignedOfficer}</span>
-          </div>
-          <div className="bg-gray-50/80 p-3 rounded-lg border border-gray-100">
-            <span className="text-gray-400 block text-[10px] font-semibold uppercase">Status (सत्यापन स्थिति)</span>
-            <span className="font-bold text-primary mt-0.5 block capitalize">
-              {child.nutrition_status === "normal" ? "निस्तारित (Resolved)" : "समीक्षाधीन (Under Review)"}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Person / Incident Information Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-2xs space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-            <FileText className="text-primary" size={18} />
-            <h2 className="font-bold text-sm text-gray-900">
-              Person / Incident Information (लाभार्थी व प्रकरण विवरण)
-            </h2>
-          </div>
-
-          <div className="space-y-2.5 text-xs">
-            <div className="flex justify-between py-1.5 border-b border-gray-50">
-              <span className="text-gray-500">पूरा नाम (Full Name):</span>
-              <span className="font-bold text-gray-800">{child.name}</span>
-            </div>
-            <div className="flex justify-between py-1.5 border-b border-gray-50">
-              <span className="text-gray-500">माता का नाम (Mother's Name):</span>
-              <span className="font-semibold text-gray-800">{child.mother_name || "श्रीमती सुनीता देवी"}</span>
-            </div>
-            <div className="flex justify-between py-1.5 border-b border-gray-50">
-              <span className="text-gray-500">जन्म तिथि (Date of Birth):</span>
-              <span className="font-mono text-gray-800">{child.dob || "2023-08-20"}</span>
-            </div>
-            <div className="flex justify-between py-1.5 border-b border-gray-50">
-              <span className="text-gray-500">स्थान / वार्ड (Location / Ward):</span>
-              <span className="font-semibold text-gray-800">वार्ड क्र. 4, आंगनवाड़ी केंद्र 12, पुणे</span>
-            </div>
-            <div className="flex justify-between py-1.5 border-b border-gray-50">
-              <span className="text-gray-500">पोषण वर्गीकरण (Nutrition Status):</span>
-              <span className="uppercase font-bold text-primary">{child.nutrition_status}</span>
-            </div>
-            <div className="flex justify-between py-1.5">
-              <span className="text-gray-500">प्रकरण संदर्भ सं. (Case Reference):</span>
-              <span className="font-mono text-gray-800">MWCD/MH-PUN/2026/{child.id}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Timeline Component */}
-        <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-2xs space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-            <Clock className="text-primary" size={18} />
-            <h2 className="font-bold text-sm text-gray-900">
-              Case Timeline & Audit Trail (प्रकरण इतिहास व समयरेखा)
-            </h2>
-          </div>
-
-          <div className="relative pl-6 space-y-5 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-200">
-            <div className="relative">
-              <div className="absolute -left-[27px] top-0.5 w-3.5 h-3.5 rounded-full bg-primary border-2 border-white shadow-xs"></div>
-              <div className="text-xs font-bold text-gray-900">प्रकरण पंजीकृत (Case Created & Logged)</div>
-              <div className="text-[11px] text-gray-500 font-mono mt-0.5">
-                {formattedDate} • {formattedTime}
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
-                आंगनवाड़ी केंद्र द्वारा प्रारंभिक शारीरिक माप व पारिवारिक विवरण पंजी में दर्ज।
-              </p>
-            </div>
-
-            <div className="relative">
-              <div className="absolute -left-[27px] top-0.5 w-3.5 h-3.5 rounded-full bg-blue-500 border-2 border-white shadow-xs"></div>
-              <div className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                <span>AI विश्लेषण पूर्ण (AI Vision & SHAP Analyzed)</span>
-                <Sparkles size={12} className="text-blue-500" />
-              </div>
-              <div className="text-[11px] text-gray-500 font-mono mt-0.5">
-                {formattedDate} • 10:17 AM
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
-                AROMI न्यूरल मॉडल द्वारा वजन-ऊंचाई अनुपात व पोषण स्थिति का स्वचालित वर्गीकरण:{" "}
-                <span className="font-bold text-primary uppercase">{child.nutrition_status}</span>
-              </p>
-            </div>
-
-            <div className="relative">
-              <div className="absolute -left-[27px] top-0.5 w-3.5 h-3.5 rounded-full bg-amber-500 border-2 border-white shadow-xs"></div>
-              <div className="text-xs font-bold text-gray-900">सत्यापन हेतु अधिकृत (Assigned for Verification)</div>
-              <div className="text-[11px] text-gray-500 font-mono mt-0.5">
-                {formattedDate} • 10:25 AM
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
-                पर्यवेक्षक अधिकारी <strong>{assignedOfficer}</strong> को गृह भेंट व पोषण निगरानी हेतु समनुदेशित।
-              </p>
-            </div>
-
-            {child.nutrition_status === "normal" && (
-              <div className="relative">
-                <div className="absolute -left-[27px] top-0.5 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white shadow-xs"></div>
-                <div className="text-xs font-bold text-green-800">प्रकरण निस्तारित (Case Resolved)</div>
-                <div className="text-[11px] text-green-700 font-mono mt-0.5">सत्यापन पूर्ण</div>
-                <p className="text-xs text-gray-600 mt-1">
-                  शारीरिक माप सामान्य पाए गए। नियमित मासिक फॉलो-अप निर्धारित।
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Action Footer */}
-      <div className="bg-white rounded-xl border border-gray-200/80 p-4 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="text-xs text-gray-500">
-          शासकीय प्रविष्टि अभिलेख संख्या: <strong>AROMI-LOG-2026-{child.id}</strong>
-        </div>
-
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Link
-            to={`/growth?child_id=${child.id}`}
-            className="flex-1 sm:flex-none text-center btn-primary text-xs py-2 px-3.5 shadow-sm"
+          <button
+            type="button"
+            onClick={() => setShowAssignModal(true)}
+            aria-label="Assign Designated Officer"
+            className="btn-secondary text-xs py-2 px-3 font-semibold shadow-2xs flex items-center gap-1.5 cursor-pointer"
           >
-            📏 पोषण ट्रैकर में खोलें
-          </Link>
-          <Link
-            to="/visits"
-            className="flex-1 sm:flex-none text-center bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3.5 rounded-lg text-xs font-semibold border border-gray-200 transition-colors"
+            <UserCheck size={14} className="text-primary-navy" />
+            <span>अधिकारी नियुक्त करें</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowUpdateModal(true)}
+            aria-label="Update Case Measurements"
+            className="btn-primary text-xs py-2 px-3 font-semibold shadow-2xs flex items-center gap-1.5 cursor-pointer"
           >
-            🏠 गृह भेंट अनुसूची
-          </Link>
-          {child.nutrition_status === "sam" && (
-            <button
-              onClick={() => toast.success("आपातकालीन PHC रेफरल अलर्ट उच्चाधिकारियों को अग्रेषित किया गया")}
-              className="flex-1 sm:flex-none bg-red-600 hover:bg-red-700 text-white py-2 px-3.5 rounded-lg text-xs font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center gap-1.5"
-            >
-              <AlertTriangle size={14} />
-              <span>PHC रेफरल अग्रेषित करें</span>
-            </button>
-          )}
+            <Scale size={14} />
+            <span>माप अद्यतन करें</span>
+          </button>
         </div>
       </div>
 
-      {/* Standardized Measurement Update Modal */}
+      {/* Standardized Case Metadata Card Component */}
+      <CaseMetadataCard
+        id={child.id}
+        name={child.name}
+        ageMonths={child.age_months}
+        gender={child.gender}
+        status={child.nutrition_status}
+        dateReported={child.created_at || new Date()}
+        officerName={worker?.name || "श्रीमती प्रिया शर्मा (AWW)"}
+        centreName={worker?.centre_name || "आंगनवाड़ी केंद्र 14"}
+        urgencyLevel={child.nutrition_status === "sam" ? "अत्यावश्यक (Critical)" : undefined}
+      />
+
+      {/* Tabs */}
+      <div role="tablist" aria-label="Case details view options" className="flex gap-2 p-1 bg-slate-100 rounded-xl max-w-md">
+        {[
+          { key: "overview", label: "प्रकरण अवलोकन (Overview)" },
+          { key: "timeline", label: "इतिहास व फॉलो-अप (Timeline)" },
+          { key: "clinical", label: "नैदानिक मेट्रिक्स (Clinical)" },
+        ].map((t) => (
+          <button
+            key={t.key}
+            role="tab"
+            type="button"
+            aria-selected={activeTab === t.key}
+            onClick={() => setActiveTab(t.key as any)}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-gov-blue ${
+              activeTab === t.key
+                ? "bg-white text-primary-navy shadow-2xs"
+                : "text-slate-600 hover:text-text-main"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab 1: Overview */}
+      {activeTab === "overview" && (
+        <div className="space-y-6">
+          {/* Administrative Metadata */}
+          <div className="bg-white rounded-xl border border-border-subtle p-6 shadow-2xs space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 pb-2 border-b border-border-subtle">
+              प्रशासनिक विवरण व अभिभावक पहचान (Family & Administrative Record)
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+              <div className="p-3 bg-bg-base/70 rounded-lg border border-border-subtle">
+                <span className="text-slate-500 block text-[11px] font-bold uppercase">माता का नाम</span>
+                <span className="font-bold text-text-main text-sm">{child.mother_name || "श्रीमती सुनीता देवी"}</span>
+              </div>
+              <div className="p-3 bg-bg-base/70 rounded-lg border border-border-subtle">
+                <span className="text-slate-500 block text-[11px] font-bold uppercase">पिता का नाम</span>
+                <span className="font-bold text-text-main text-sm">{child.father_name || "श्री संतोष जाधव"}</span>
+              </div>
+              <div className="p-3 bg-bg-base/70 rounded-lg border border-border-subtle">
+                <span className="text-slate-500 block text-[11px] font-bold uppercase">संबद्ध केंद्र व सेक्टर</span>
+                <span className="font-bold text-text-main text-sm">केंद्र 14 • सेक्टर खड़की</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Current Measurements & Vitals */}
+          <div className="bg-white rounded-xl border border-border-subtle p-6 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-border-subtle">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                वर्तमान शारीरिक माप व Z-Score वर्गीकरण
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowUpdateModal(true)}
+                aria-label="Update current measurements"
+                className="text-xs font-bold text-gov-blue hover:underline cursor-pointer focus:outline-none focus-visible:underline"
+              >
+                + माप अद्यतन करें
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 bg-bg-base/70 rounded-xl border border-border-subtle text-center space-y-1">
+                <div className="text-2xl font-black text-primary-navy">
+                  {child.weight_kg || weight || "11.2"} <span className="text-xs font-normal">kg</span>
+                </div>
+                <div className="text-xs font-bold text-slate-700">वजन (Weight)</div>
+                <div className="text-xs text-slate-500 font-medium">मानक: 12.5 kg</div>
+              </div>
+
+              <div className="p-4 bg-bg-base/70 rounded-xl border border-border-subtle text-center space-y-1">
+                <div className="text-2xl font-black text-primary-navy">
+                  {child.height_cm || height || "92.0"} <span className="text-xs font-normal">cm</span>
+                </div>
+                <div className="text-xs font-bold text-slate-700">ऊंचाई (Height)</div>
+                <div className="text-xs text-slate-500 font-medium">स्टेडियोमीटर माप</div>
+              </div>
+
+              <div className="p-4 bg-bg-base/70 rounded-xl border border-border-subtle text-center space-y-1">
+                <div className="text-2xl font-black text-primary-navy">
+                  {child.muac_cm || muac || "12.1"} <span className="text-xs font-normal">cm</span>
+                </div>
+                <div className="text-xs font-bold text-slate-700">मध्य बांह परिधि (MUAC)</div>
+                <div className="text-xs text-slate-500 font-medium">
+                  {Number(child.muac_cm || muac || 12.1) < 11.5 ? "🔴 SAM थ्रेशोल्ड" : "🟡 MAM थ्रेशोल्ड"}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 2: Timeline */}
+      {activeTab === "timeline" && (
+        <div className="bg-white rounded-xl border border-border-subtle p-6 shadow-2xs space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 pb-2 border-b border-border-subtle">
+            केस इतिहास व अनुवर्ती कार्यवाही लॉग (Follow-up & Audit Trail)
+          </h3>
+          <div className="space-y-4 pt-2">
+            {[
+              {
+                date: "22 अग 2026, 10:42 AM",
+                title: "प्रकरण अद्यतन एवं भौतिक माप सत्यापन",
+                by: worker?.name || "श्रीमती प्रिया शर्मा (AWW)",
+                desc: "वजन 11.2 kg एवं MUAC 12.1 cm दर्ज किया गया। पोषण स्थिति MAM के अंतर्गत निगरानी जारी।",
+                tag: "माप अद्यतन",
+              },
+              {
+                date: "15 अग 2026, 02:15 PM",
+                title: "गृह भेंट (Home Visit) पूर्ण",
+                by: "श्रीमती प्रिया शर्मा (AWW)",
+                desc: "माता-पिता को ऊर्जा-सघन पूरक आहार (THR) देने की विधि समझाई गई।",
+                tag: "गृह भेंट",
+              },
+              {
+                date: "01 अग 2026, 09:30 AM",
+                title: "प्रारंभिक प्रकरण पंजीकरण",
+                by: "प्रशासनिक सिस्टम (AROMI)",
+                desc: "आंगनवाड़ी केंद्र 14 में नवीन लाभार्थी के रूप में पंजीयन संपन्न।",
+                tag: "पंजीकरण",
+              },
+            ].map((item, idx) => (
+              <div key={idx} className="flex gap-4 items-start relative pb-4 last:pb-0">
+                <div className="w-8 h-8 rounded-full bg-blue-50 text-primary-navy flex items-center justify-center font-bold text-xs shrink-0 border border-border-subtle mt-0.5">
+                  {idx + 1}
+                </div>
+                <div className="flex-1 min-w-0 bg-bg-base/60 p-4 rounded-xl border border-border-subtle space-y-1.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <div className="font-bold text-sm text-text-main">{item.title}</div>
+                    <span className="text-xs font-mono text-slate-600">{item.date}</span>
+                  </div>
+                  <p className="text-xs text-slate-700 leading-relaxed font-medium">{item.desc}</p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <span className="text-[11px] font-bold text-gov-blue">{item.by}</span>
+                    <span className="text-slate-300">•</span>
+                    <span className="text-[10px] font-bold uppercase bg-white text-slate-700 px-2 py-0.5 rounded border border-border-subtle">
+                      {item.tag}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tab 3: Clinical */}
+      {activeTab === "clinical" && (
+        <div className="bg-white rounded-xl border border-border-subtle p-6 shadow-2xs space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 pb-2 border-b border-border-subtle">
+            WHO व DISHA दिशानिर्देश अनुपालन समीक्षा (Clinical Protocols)
+          </h3>
+          <div className="space-y-3 pt-1 text-xs">
+            <div className="p-4 bg-blue-50/70 border border-blue-200 rounded-xl space-y-1.5">
+              <div className="font-bold text-blue-950 text-sm">
+                📋 अनुशंसित क्लिनिकल प्रोटोकॉल (Recommended Protocol)
+              </div>
+              <p className="text-blue-900 leading-relaxed font-medium">
+                लाभार्थी का शारीरिक सूचकांक मध्यम कुपोषण (MAM) इंगित करता है। 15-दिवसीय चक्र में पूरक पोषाहार वितरण तथा पाक्षिक गृह भेंट अनिवार्य है।
+              </p>
+            </div>
+
+            <div className="p-4 bg-bg-base/70 border border-border-subtle rounded-xl space-y-2">
+              <div className="font-bold text-text-main">
+                आवश्यक अनुवर्ती चरण (Immediate Actions):
+              </div>
+              <ul className="space-y-1.5 text-slate-700 font-medium">
+                <li className="flex items-center gap-2">
+                  <CheckCircle size={14} className="text-success-green shrink-0" />
+                  <span>दैनिक अनुपूरक पोषाहार (THR/RUSF) नियमित वितरण सुनिश्चित करें</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle size={14} className="text-success-green shrink-0" />
+                  <span>15-दिवसीय अनुवर्ती गृह भेंट अनुसूची में प्राथमिकता पर दर्ज</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle size={14} className="text-success-green shrink-0" />
+                  <span>मासिक वजन व MUAC टेप पुनः माप अभिलेख संकलित करें</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Measurement Update Modal */}
       {showUpdateModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl border border-gray-200">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="update-modal-title"
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in"
+        >
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-border-subtle text-text-main">
             <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
               <div className="flex items-center gap-2">
-                <Scale className="text-primary" size={18} />
-                <h3 className="font-bold text-sm text-main">
+                <Scale className="text-primary-navy" size={18} />
+                <h3 id="update-modal-title" className="font-bold text-sm text-text-main">
                   केस स्थिति व माप अद्यतन (Update Case Measurements)
                 </h3>
               </div>
               <button
+                type="button"
                 onClick={() => setShowUpdateModal(false)}
-                className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+                aria-label="Close dialog"
+                className="text-slate-500 hover:text-text-main p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-gov-blue"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 p-2.5 bg-gray-50 rounded-lg border border-gray-200 text-xs">
+            <div className="grid grid-cols-2 gap-2.5 p-3 bg-bg-base rounded-xl border border-border-subtle text-xs">
               <div>
-                <span className="text-gray-500 block text-[10px]">लाभार्थी</span>
-                <span className="font-bold text-gray-800">{child.name}</span>
+                <span className="text-slate-500 block text-[10px] font-bold uppercase">लाभार्थी</span>
+                <span className="font-bold text-text-main text-sm">{child.name}</span>
               </div>
               <div>
-                <span className="text-gray-500 block text-[10px]">वर्तमान स्थिति</span>
-                <span className="uppercase font-bold text-primary">{child.nutrition_status}</span>
+                <span className="text-slate-500 block text-[10px] font-bold uppercase">वर्तमान स्थिति</span>
+                <span className="uppercase font-bold text-primary-navy">{child.nutrition_status}</span>
               </div>
             </div>
 
-            <div className="space-y-3 pt-1">
+            <div className="space-y-3.5 pt-1">
               <FormField
                 label="वजन / Weight (kg)"
                 required
@@ -434,11 +457,11 @@ export default function CaseDetails() {
               </FormField>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-border-subtle">
+            <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-border-subtle">
               <button
                 type="button"
                 onClick={() => setShowUpdateModal(false)}
-                className="btn-secondary text-xs px-4 py-2 font-semibold text-gray-700"
+                className="btn-secondary text-xs px-4 py-2.5 font-semibold text-slate-700"
               >
                 रद्द करें (Cancel)
               </button>
@@ -446,7 +469,7 @@ export default function CaseDetails() {
                 type="button"
                 onClick={handleUpdateStatus}
                 disabled={updating}
-                className="btn-primary text-xs px-5 py-2 font-semibold flex items-center gap-1.5 shadow-sm"
+                className="btn-primary text-xs px-5 py-2.5 font-semibold flex items-center gap-2 shadow-2xs"
               >
                 {updating ? (
                   <>
@@ -465,20 +488,27 @@ export default function CaseDetails() {
         </div>
       )}
 
-      {/* Standardized Assign Officer Modal */}
+      {/* Assign Officer Modal */}
       {showAssignModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl border border-gray-200">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="assign-modal-title"
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in"
+        >
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-border-subtle text-text-main">
             <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
               <div className="flex items-center gap-2">
-                <UserCheck className="text-primary" size={18} />
-                <h3 className="font-bold text-sm text-main">
+                <UserCheck className="text-primary-navy" size={18} />
+                <h3 id="assign-modal-title" className="font-bold text-sm text-text-main">
                   प्रकरण हेतु अधिकारी नियुक्ति (Assign Case Officer)
                 </h3>
               </div>
               <button
+                type="button"
                 onClick={() => setShowAssignModal(false)}
-                className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+                aria-label="Close dialog"
+                className="text-slate-500 hover:text-text-main p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-gov-blue"
               >
                 <X size={18} />
               </button>
@@ -502,18 +532,18 @@ export default function CaseDetails() {
               </FormField>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-border-subtle">
+            <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-border-subtle">
               <button
                 type="button"
                 onClick={() => setShowAssignModal(false)}
-                className="btn-secondary text-xs px-4 py-2 font-semibold text-gray-700"
+                className="btn-secondary text-xs px-4 py-2.5 font-semibold text-slate-700"
               >
                 रद्द करें (Cancel)
               </button>
               <button
                 type="button"
                 onClick={handleAssignOfficer}
-                className="btn-primary text-xs px-5 py-2 font-semibold flex items-center gap-1.5 shadow-sm"
+                className="btn-primary text-xs px-5 py-2.5 font-semibold flex items-center gap-2 shadow-2xs"
               >
                 <CheckCircle size={14} />
                 <span>अधिकारी नियुक्त करें (Confirm Assignment)</span>

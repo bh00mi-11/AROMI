@@ -21,38 +21,44 @@ body {
   color: #1F2933;
 }
 
+/* Global focus-visible styles for keyboard navigation */
+:focus-visible {
+  outline: 2px solid #1F5A8A;
+  outline-offset: 2px;
+}
+
 .card {
-  @apply bg-white rounded-xl shadow-2xs border border-border-subtle p-4;
+  @apply bg-white rounded-xl shadow-2xs border border-border-subtle p-6;
 }
 
 .btn-primary {
-  @apply bg-primary-navy text-white px-4 py-2 rounded-md font-semibold hover:bg-gov-blue transition-all active:scale-95 shadow-2xs;
+  @apply bg-primary-navy text-white px-4 py-2 rounded-lg font-semibold hover:bg-gov-blue transition-all active:scale-95 shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gov-blue disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
 }
 
 .btn-secondary {
-  @apply bg-white text-text-main border border-border-subtle px-4 py-2 rounded-md font-semibold hover:bg-bg-base transition-all active:scale-95;
+  @apply bg-white text-text-main border border-border-subtle px-4 py-2 rounded-lg font-semibold hover:bg-bg-base transition-all active:scale-95 shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gov-blue disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
 }
 
 .input-gov {
-  @apply w-full bg-white border border-border-subtle rounded-md px-3 py-2 text-xs md:text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gov-blue focus:border-gov-blue transition-all disabled:bg-bg-base disabled:text-gray-500 disabled:cursor-not-allowed;
+  @apply w-full bg-white border border-border-subtle rounded-lg px-3 py-2 text-xs md:text-sm text-text-main placeholder:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-gov-blue focus:border-gov-blue transition-all disabled:bg-bg-base disabled:text-slate-500 disabled:cursor-not-allowed;
 }
 
 .badge-mam {
-  @apply bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full text-xs font-semibold;
+  @apply bg-amber-50 text-amber-900 border border-amber-200 px-2.5 py-0.5 rounded-full text-xs font-semibold;
 }
 
 .badge-sam {
-  @apply bg-red-50 text-danger-red border border-red-200 px-2 py-0.5 rounded-full text-xs font-semibold;
+  @apply bg-red-50 text-danger-red border border-red-200 px-2.5 py-0.5 rounded-full text-xs font-semibold;
 }
 
 .badge-normal {
-  @apply bg-green-50 text-success-green border border-green-200 px-2 py-0.5 rounded-full text-xs font-semibold;
+  @apply bg-green-50 text-success-green border border-green-200 px-2.5 py-0.5 rounded-full text-xs font-semibold;
 }
 
 .badge-unknown {
-  @apply bg-gray-100 text-gray-600 border border-border-subtle px-2 py-0.5 rounded-full text-xs font-semibold;
+  @apply bg-slate-100 text-slate-700 border border-border-subtle px-2.5 py-0.5 rounded-full text-xs font-semibold;
 }
 
 .offline-bar {
-  @apply bg-warning-amber text-gray-900 text-xs text-center py-1 font-semibold;
+  @apply bg-warning-amber text-gray-900 text-xs text-center py-1.5 font-semibold shadow-xs;
 }

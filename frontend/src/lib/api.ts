@@ -24,6 +24,27 @@ api.interceptors.response.use(
 
 export default api;
 
+// ── Types ────────────────────────────────────────────────────────────────────
+export interface AgentStatus {
+  agent: string;
+  status: "idle" | "running" | "completed" | "failed";
+  last_run?: string | null;
+  duration_ms?: number | null;
+}
+
+export interface DashboardSummary {
+  total_children: number;
+  present_today: number;
+  mam_count: number;
+  sam_count: number;
+  normal_count: number;
+  visits_due_today: number;
+  worker_hours_saved: number;
+  reports_automated_pct: number;
+  offline_mode?: boolean;
+  last_sync?: string;
+}
+
 // ── API helpers ──────────────────────────────────────────────────────────────
 export const authAPI = {
   login: (email: string, password: string) =>
@@ -34,13 +55,18 @@ export const authAPI = {
 
 export const childAPI = {
   list: () => api.get("/children/"),
-  get: (id: number) => api.get(`/children/${id}`),
+  getAll: () => api.get("/children/"),
+  get: (id: number | string) => api.get(`/children/${id}`),
+  getById: (id: number | string) => api.get(`/children/${id}`),
   create: (data: any) => api.post("/children/", data),
+  register: (data: any) => api.post("/children/", data),
 };
+
+export const childrenAPI = childAPI;
 
 export const growthAPI = {
   record: (data: any) => api.post("/growth/record", data),
-  history: (childId: number) => api.get(`/growth/child/${childId}`),
+  history: (childId: number | string) => api.get(`/growth/child/${childId}`),
 };
 
 export const attendanceAPI = {
@@ -72,8 +98,27 @@ export const photoAPI = {
     api.post("/photo/check", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
+  analyze: (
+    photoBlob: Blob,
+    childName?: string,
+    ageMonths?: number,
+    gender?: string
+  ) => {
+    const formData = new FormData();
+    formData.append("photo", photoBlob, "child_photo.jpg");
+    if (childName) formData.append("child_name", childName);
+    if (ageMonths) formData.append("age_months", String(ageMonths));
+    if (gender) formData.append("gender", gender);
+    return api.post("/photo/check", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
   checkDemo: (childName: string, status: string) =>
-    api.post(`/photo/check-demo?child_name=${encodeURIComponent(childName)}&status=${status}`),
+    api.post(
+      `/photo/check-demo?child_name=${encodeURIComponent(
+        childName
+      )}&status=${status}`
+    ),
 };
 
 export const ragAPI = {
@@ -84,13 +129,20 @@ export const ragAPI = {
 export const agentAPI = {
   events: () => api.get("/agent/events"),
   pipelineStatus: () => api.get("/agent/pipeline/status"),
+  getPipeline: () => api.get("/agent/pipeline/status"),
+  getMetrics: () => api.get("/dashboard/stats"),
 };
 
 export const dashboardAPI = {
   stats: () => api.get("/dashboard/stats"),
+  getStats: () => api.get("/dashboard/stats"),
 };
 
 export const visitsAPI = {
   list: () => api.get("/visits/"),
+  getPriority: () => api.get("/visits/priority"),
   create: (data: any) => api.post("/visits/", data),
+  schedule: (data: any) => api.post("/visits/", data),
+  complete: (id: number | string, notes?: string) =>
+    api.post(`/visits/${id}/complete`, { notes }),
 };
