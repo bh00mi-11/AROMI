@@ -97,7 +97,7 @@ Be evidence-based and precise: base your classification strictly on what is visu
         )
 
         payload = {
-            "model": "anthropic/claude-3-haiku",
+            "model": "openai/gpt-4o-mini",
             "max_tokens": 800,
             "messages": [
                 {
@@ -138,28 +138,8 @@ Be evidence-based and precise: base your classification strictly on what is visu
             }
 
     except Exception as e:
-        # If API fails, return demo result
         print(f"[AROMI Photo Check] OpenRouter API call failed: {type(e).__name__}: {e}")
-        result = {
-            "status": "mam",
-            "confidence_pct": 74,
-            "visual_indicators_hindi": [
-                "भुजाओं में मांसपेशियों की कमी दिखती है",
-                "पसलियाँ कुछ दिखाई दे रही हैं",
-            ],
-            "explanation_hindi": f"{child_name} में मध्यम कुपोषण (MAM) के संकेत दिख रहे हैं। MUAC और वजन की जांच जरूरी है।",
-            "immediate_actions_hindi": [
-                "MUAC माप लें (12.5 cm से कम होने पर MAM)",
-                "वजन दर्ज करें",
-                "पोषण सहायता शुरू करें",
-                "15 दिन में फॉलो-अप करें",
-            ],
-            "phc_referral_required": False,
-            "disclaimer_hindi": "यह AI की सलाह है। अंतिम निर्णय डॉक्टर का होगा। [Demo mode]",
-            "_note": "API unavailable — demo response shown",
-            "_is_fallback": True,
-            "_error_detail": f"{type(e).__name__}: {str(e)}",
-        }
+        raise HTTPException(status_code=500, detail="Photo analysis failed. Ensure OPENROUTER_API_KEY is valid.")
 
     # ── SAM Escalation: WhatsApp + Hindi voice call ───────────────────
     alert_sids = {}
