@@ -45,6 +45,18 @@ export interface DashboardSummary {
   last_sync?: string;
 }
 
+// ── File Download Helper ─────────────────────────────────────────────────────
+export const downloadBlobFile = (blobData: Blob, filename: string) => {
+  const url = window.URL.createObjectURL(blobData);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
+
 // ── API helpers ──────────────────────────────────────────────────────────────
 export const authAPI = {
   login: (email: string, password: string) =>
@@ -60,6 +72,11 @@ export const childAPI = {
   getById: (id: number | string) => api.get(`/children/${id}`),
   create: (data: any) => api.post("/children/", data),
   register: (data: any) => api.post("/children/", data),
+  downloadDossierPDF: async (id: number | string, childName?: string) => {
+    const res = await api.get(`/children/${id}/pdf`, { responseType: "blob" });
+    const cleanName = (childName || `child_${id}`).replace(/[^a-zA-Z0-9_-]/g, "_");
+    downloadBlobFile(res.data, `AROMI_Dossier_${cleanName}.pdf`);
+  },
 };
 
 export const childrenAPI = childAPI;
@@ -77,12 +94,32 @@ export const attendanceAPI = {
 
 export const activityAPI = {
   generate: (data: any) => api.post("/activity/generate", data),
+  generatePlan: (data: any) => api.post("/activity/generate", data),
   today: () => api.get("/activity/today"),
+  downloadPDF: async (planData: any) => {
+    const res = await api.post("/activity/pdf", planData, { responseType: "blob" });
+    downloadBlobFile(res.data, "AROMI_ECCE_Daily_Activity_Plan.pdf");
+  },
+  downloadTodayPDF: async () => {
+    const res = await api.get("/activity/today/pdf", { responseType: "blob" });
+    downloadBlobFile(res.data, "AROMI_ECCE_Today_Plan.pdf");
+  },
 };
 
 export const mprAPI = {
   generate: (month: number, year: number) =>
     api.post("/mpr/generate", { month, year }),
+  downloadPDF: async (month: number, year: number, mprData?: any) => {
+    const res = await api.post(
+      "/mpr/pdf",
+      mprData ? { ...mprData, month, year } : { month, year },
+      { responseType: "blob" }
+    );
+    downloadBlobFile(
+      res.data,
+      `AROMI_MPR_${year}_${String(month).padStart(2, "0")}.pdf`
+    );
+  },
 };
 
 export const voiceAPI = {

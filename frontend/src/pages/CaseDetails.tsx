@@ -15,6 +15,7 @@ import {
   CheckCircle,
   X,
   Loader,
+  Download,
 } from "lucide-react";
 import { childrenAPI, growthAPI } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
@@ -152,7 +153,25 @@ export default function CaseDetails() {
           <span className="text-xs font-bold text-text-main font-mono">Case #{caseIdFormatted}</span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                toast.loading("बाल स्वास्थ्य कार्ड PDF तैयार हो रहा है...", { id: "dossier-pdf" });
+                await childrenAPI.downloadDossierPDF(child.id, child.name);
+                toast.success("बाल स्वास्थ्य कार्ड PDF डाउनलोड पूर्ण!", { id: "dossier-pdf" });
+              } catch {
+                toast.error("PDF डाउनलोड में त्रुटि।", { id: "dossier-pdf" });
+              }
+            }}
+            aria-label="Download Health Dossier PDF"
+            title="अधिकृत बाल स्वास्थ्य कार्ड डाउनलोड करें"
+            className="btn-secondary text-xs py-2 px-3 font-semibold shadow-2xs flex items-center gap-1.5 cursor-pointer"
+          >
+            <Download size={14} className="text-primary-navy" />
+            <span className="hidden sm:inline">स्वास्थ्य कार्ड PDF</span>
+          </button>
           <button
             type="button"
             onClick={() => setShowAssignModal(true)}
