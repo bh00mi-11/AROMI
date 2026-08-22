@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "./lib/AuthContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Children from "./pages/Children";
+import CaseDetails from "./pages/CaseDetails";
 import GrowthTracker from "./pages/GrowthTracker";
 import ActivityPlanner from "./pages/ActivityPlanner";
 import MPRGenerator from "./pages/MPRGenerator";
@@ -37,6 +38,8 @@ export default function App() {
           }>
             <Route index element={<Dashboard />} />
             <Route path="children" element={<Children />} />
+            <Route path="children/:id" element={<CaseDetails />} />
+            <Route path="cases/:id" element={<CaseDetails />} />
             <Route path="growth" element={<GrowthTracker />} />
             <Route path="activity" element={<ActivityPlanner />} />
             <Route path="mpr" element={<MPRGenerator />} />

@@ -1,15 +1,58 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body { font-family: "Noto Sans Devanagari", sans-serif; background: #F9FAFB; }
+:root {
+  --primary-navy: #0B3D5C;
+  --gov-blue: #1F5A8A;
+  --saffron-accent: #E67E22;
+  --success-green: #2E7D32;
+  --warning-amber: #FFC107;
+  --danger-red: #D32F2F;
+  --bg-base: #F5F7F8;
+  --border-subtle: #D9E1E5;
+  --text-main: #1F2933;
+}
 
-.card { @apply bg-white rounded-xl shadow-sm border border-gray-100 p-4; }
-.btn-primary { @apply bg-primary text-white px-4 py-2 rounded-lg font-semibold hover:bg-primary-dark transition-all active:scale-95; }
-.btn-secondary { @apply bg-primary-light text-primary-dark px-4 py-2 rounded-lg font-semibold hover:bg-orange-100 transition-all; }
-.badge-mam { @apply bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs font-semibold; }
-.badge-sam { @apply bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold; }
-.badge-normal { @apply bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold; }
-.badge-unknown { @apply bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs font-semibold; }
-.offline-bar { @apply bg-yellow-400 text-yellow-900 text-xs text-center py-1 font-semibold; }
+body {
+  font-family: "Noto Sans Devanagari", sans-serif;
+  background-color: #F5F7F8;
+  color: #1F2933;
+}
+
+.card {
+  @apply bg-white rounded-xl shadow-2xs border border-border-subtle p-4;
+}
+
+.btn-primary {
+  @apply bg-primary-navy text-white px-4 py-2 rounded-md font-semibold hover:bg-gov-blue transition-all active:scale-95 shadow-2xs;
+}
+
+.btn-secondary {
+  @apply bg-white text-text-main border border-border-subtle px-4 py-2 rounded-md font-semibold hover:bg-bg-base transition-all active:scale-95;
+}
+
+.input-gov {
+  @apply w-full bg-white border border-border-subtle rounded-md px-3 py-2 text-xs md:text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gov-blue focus:border-gov-blue transition-all disabled:bg-bg-base disabled:text-gray-500 disabled:cursor-not-allowed;
+}
+
+.badge-mam {
+  @apply bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full text-xs font-semibold;
+}
+
+.badge-sam {
+  @apply bg-red-50 text-danger-red border border-red-200 px-2 py-0.5 rounded-full text-xs font-semibold;
+}
+
+.badge-normal {
+  @apply bg-green-50 text-success-green border border-green-200 px-2 py-0.5 rounded-full text-xs font-semibold;
+}
+
+.badge-unknown {
+  @apply bg-gray-100 text-gray-600 border border-border-subtle px-2 py-0.5 rounded-full text-xs font-semibold;
+}
+
+.offline-bar {
+  @apply bg-warning-amber text-gray-900 text-xs text-center py-1 font-semibold;
+}

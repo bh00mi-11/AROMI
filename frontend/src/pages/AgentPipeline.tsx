@@ -28,7 +28,7 @@ const AGENTS = [
   { key: "risk_agent",         labelHi: "जोखिम एजेंट",      desc: "जोखिम स्कोर गणना",   emoji: "⚠️", color: "text-yellow-600", bgIdle: "bg-yellow-50 border-yellow-200", bgActive: "bg-yellow-100 border-yellow-400"},
   { key: "intervention_agent", labelHi: "हस्तक्षेप एजेंट",  desc: "पोषण योजना तैयार",   emoji: "💊", color: "text-red-600",    bgIdle: "bg-red-50 border-red-200",     bgActive: "bg-red-100 border-red-400"     },
   { key: "visit_agent",        labelHi: "भ्रमण एजेंट",      desc: "फॉलो-अप शेड्यूल",    emoji: "🏠", color: "text-green-600",  bgIdle: "bg-green-50 border-green-200",  bgActive: "bg-green-100 border-green-400" },
-  { key: "reporting_agent",    labelHi: "रिपोर्टिंग एजेंट", desc: "रिकॉर्ड सहेजना",     emoji: "📋", color: "text-purple-600", bgIdle: "bg-purple-50 border-purple-200",bgActive: "bg-purple-100 border-purple-400"},
+  { key: "reporting_agent",    labelHi: "रिपोर्टिंग एजेंट", desc: "रिकॉर्ड सहेजना",     emoji: "📋", color: "text-primary-navy", bgIdle: "bg-bg-base border-border-subtle",bgActive: "bg-primary-navy/10 border-gov-blue"},
 ];
 
 const DEMO_PIPELINE: AgentStatus[] = [
@@ -210,8 +210,8 @@ export default function AgentPipeline() {
             {[
               { label: "घंटे बचाए (मासिक)", value: metrics.worker_hours_saved, unit: "h", sub: "प्रति कार्यकर्ता", color: "text-orange-500", bg: "bg-orange-50" },
               { label: "रिपोर्ट स्वचालित",  value: metrics.reports_automated_pct, unit: "%", sub: "MPR / रिकॉर्ड", color: "text-green-600", bg: "bg-green-50" },
-              { label: "कुल बच्चे",          value: metrics.total_children, unit: "", sub: "सक्रिय पंजीकृत", color: "text-blue-600", bg: "bg-blue-50" },
-              { label: "आज उपस्थित",         value: metrics.present_today, unit: "", sub: `${Math.round((metrics.present_today/metrics.total_children)*100)}% उपस्थिति दर`, color: "text-purple-600", bg: "bg-purple-50" },
+              { label: "कुल बच्चे",          value: metrics.total_children, unit: "", sub: "सक्रिय पंजीकृत", color: "text-gov-blue", bg: "bg-bg-base border border-border-subtle" },
+              { label: "आज उपस्थित",         value: metrics.present_today, unit: "", sub: `${Math.round((metrics.present_today/metrics.total_children)*100)}% उपस्थिति दर`, color: "text-primary-navy", bg: "bg-bg-base border border-border-subtle" },
             ].map(m => (
               <div key={m.label} className={`${m.bg} rounded-xl p-3 text-center`}>
                 <div className={`text-2xl font-bold ${m.color}`}>{m.value}{m.unit}</div>

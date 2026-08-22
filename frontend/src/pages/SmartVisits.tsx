@@ -1,127 +1,144 @@
-import { useEffect, useState } from "react";
-import { visitsAPI, childAPI } from "../lib/api";
-import { MapPin, Clock, CheckCircle, Plus, AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import { useAuth } from "../lib/AuthContext";
+import {
+  Plus, CheckCircle, Clock, MapPin, AlertTriangle, RefreshCw, UserCheck,
+  Shield, FileText, Calendar, Hash, Paperclip, X
+} from "lucide-react";
 import toast from "react-hot-toast";
-
-type Priority = "high" | "medium" | "low";
+import StatusBadge from "../components/StatusBadge";
+import { formatCaseId } from "../components/CaseMetadataCard";
+import { FormField, FormSection } from "../components/FormField";
 
 interface Visit {
   id: number;
+  child_id: number;
   child_name: string;
   child_status: "sam" | "mam" | "normal";
   address: string;
   due_date: string;
-  priority: Priority;
+  priority: "high" | "medium" | "low";
   completed: boolean;
-  notes: string;
+  notes?: string;
+  assigned_officer?: string;
 }
 
 const DEMO_VISITS: Visit[] = [
   {
-    id: 1, child_name: "अनीता पाटिल", child_status: "sam",
-    address: "वार्ड 3, मकान नं 12, पास मंदिर",
-    due_date: new Date().toISOString().split("T")[0],
-    priority: "high", completed: false,
-    notes: "SAM केस — तुरंत गृह भेंट आवश्यक। माँ से पोषण पर बात करें।",
+    id: 1, child_id: 3, child_name: "अनीता पाटिल", child_status: "sam",
+    address: "वार्ड 4, मकान नं. 12, रेलवे क्रॉसिंग के पास",
+    due_date: "2026-08-22", priority: "high", completed: false,
+    notes: "MUAC 11.2 cm — गंभीर कुपोषण। माता-पिता को पोषण आहार और PHC रेफरल समझाना है।",
+    assigned_officer: "श्रीमती प्रिया शर्मा",
   },
   {
-    id: 2, child_name: "राज कुमार", child_status: "mam",
-    address: "वार्ड 1, गली नं 4",
-    due_date: new Date(Date.now() + 86400000).toISOString().split("T")[0],
-    priority: "medium", completed: false,
-    notes: "MAM फॉलो-अप — वजन चेक करें।",
+    id: 2, child_id: 1, child_name: "राज कुमार", child_status: "mam",
+    address: "वार्ड 2, गली नं. 3",
+    due_date: "2026-08-23", priority: "high", completed: false,
+    notes: "वजन कम है। THR (टेक होम राशन) वितरण की जांच करनी है।",
+    assigned_officer: "श्रीमती प्रिया शर्मा",
   },
   {
-    id: 3, child_name: "सोनू यादव", child_status: "mam",
-    address: "वार्ड 2, मकान नं 7",
-    due_date: new Date(Date.now() + 2 * 86400000).toISOString().split("T")[0],
-    priority: "medium", completed: false,
-    notes: "नियमित फॉलो-अप।",
+    id: 3, child_id: 5, child_name: "सोनू यादव", child_status: "mam",
+    address: "वार्ड 1, मुख्य बस्ती",
+    due_date: "2026-08-20", priority: "high", completed: false,
+    notes: "3 दिन से विलंबित। वजन माप लेना जरूरी।",
+    assigned_officer: "श्रीमती प्रिया शर्मा",
   },
   {
-    id: 4, child_name: "काव्या मोरे", child_status: "normal",
-    address: "वार्ड 4, नई कॉलोनी",
-    due_date: new Date(Date.now() - 86400000).toISOString().split("T")[0],
-    priority: "low", completed: true,
-    notes: "टीकाकरण जांच पूर्ण।",
+    id: 4, child_id: 8, child_name: "काव्या मोरे", child_status: "mam",
+    address: "वार्ड 3, बस स्टैंड के पीछे",
+    due_date: "2026-08-25", priority: "medium", completed: false,
+    notes: "नियमित फॉलो-अप। विकास चार्ट अपडेट करें।",
+    assigned_officer: "श्रीमती प्रिया शर्मा",
+  },
+  {
+    id: 5, child_id: 2, child_name: "प्रिया शर्मा", child_status: "normal",
+    address: "वार्ड 2, पंचायत भवन के पास",
+    due_date: "2026-08-28", priority: "low", completed: false,
+    notes: "सामान्य जांच और टीकाकरण सत्यापन।",
+    assigned_officer: "श्रीमती प्रिया शर्मा",
+  },
+  {
+    id: 6, child_id: 4, child_name: "रोहन जाधव", child_status: "normal",
+    address: "वार्ड 4, स्कूल के पास",
+    due_date: "2026-08-18", priority: "low", completed: true,
+    notes: "भेंट पूर्ण। बच्चा स्वस्थ है, वजन 14.2 kg।",
+    assigned_officer: "श्रीमती प्रिया शर्मा",
   },
 ];
 
-const priorityConfig: Record<Priority, { label: string; cls: string; border: string }> = {
-  high:   { label: "उच्च",   cls: "bg-red-100 text-red-700",    border: "border-l-red-500"    },
-  medium: { label: "मध्यम",  cls: "bg-yellow-100 text-yellow-700", border: "border-l-yellow-400" },
-  low:    { label: "सामान्य", cls: "bg-green-100 text-green-700", border: "border-l-green-400" },
+const priorityConfig = {
+  high:   { label: "अत्यावश्यक (High)",   cls: "bg-red-100 text-red-700",    border: "border-red-400" },
+  medium: { label: "मध्यम (Medium)",       cls: "bg-yellow-100 text-yellow-700", border: "border-yellow-400" },
+  low:    { label: "सामान्य (Routine)",    cls: "bg-green-100 text-green-700",  border: "border-green-400" },
 };
-
-const statusConfig: Record<string, { label: string; cls: string }> = {
-  sam:    { label: "SAM",     cls: "bg-red-100 text-red-700"    },
-  mam:    { label: "MAM",     cls: "bg-yellow-100 text-yellow-700" },
-  normal: { label: "सामान्य", cls: "bg-green-100 text-green-700" },
-};
-
-function formatDate(iso: string) {
-  const today = new Date().toISOString().split("T")[0];
-  const tomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
-  if (iso === today) return "आज";
-  if (iso === tomorrow) return "कल";
-  return new Date(iso).toLocaleDateString("hi-IN", { day: "numeric", month: "short" });
-}
-
-function isOverdue(iso: string) {
-  return iso < new Date().toISOString().split("T")[0];
-}
 
 export default function SmartVisits() {
+  const { worker } = useAuth();
   const [visits, setVisits] = useState<Visit[]>(DEMO_VISITS);
   const [filter, setFilter] = useState<"all" | "pending" | "completed">("pending");
   const [showForm, setShowForm] = useState(false);
   const [newChildName, setNewChildName] = useState("");
   const [newAddress, setNewAddress] = useState("");
   const [newNotes, setNewNotes] = useState("");
+  const [newPriority, setNewPriority] = useState<"high" | "medium" | "low">("high");
+  const [newStatus, setNewStatus] = useState<"sam" | "mam" | "normal">("mam");
+  const [errors, setErrors] = useState<{ childName?: string; address?: string }>({});
   const [adding, setAdding] = useState(false);
 
-  useEffect(() => {
-    visitsAPI.list()
-      .then((r) => {
-        if (r.data && r.data.length > 0) setVisits(r.data);
-      })
-      .catch(() => {});
-  }, []);
-
-  const markDone = async (id: number) => {
-    setVisits((prev) =>
-      prev.map((v) => v.id === id ? { ...v, completed: true } : v)
-    );
-    toast.success("गृह भेंट पूर्ण चिह्नित की गई ✓");
-    try {
-      await visitsAPI.create({ id, completed: true });
-    } catch {}
+  const isOverdue = (dueDate: string) => {
+    return new Date(dueDate) < new Date(new Date().toDateString());
   };
 
-  const addVisit = async () => {
-    if (!newChildName.trim() || !newAddress.trim()) {
-      toast.error("बच्चे का नाम और पता आवश्यक है");
+  const formatDate = (d: string) => {
+    return new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  };
+
+  const markDone = (id: number) => {
+    setVisits((prev) =>
+      prev.map((v) => (v.id === id ? { ...v, completed: true } : v))
+    );
+    toast.success("सत्यापन उपरांत गृह भेंट प्रकरण पूर्ण व बंद किया गया (Case Closed)");
+  };
+
+  const validateForm = () => {
+    const newErrors: { childName?: string; address?: string } = {};
+    if (!newChildName.trim()) {
+      newErrors.childName = "लाभार्थी का नाम दर्ज करना अनिवार्य है (Name is required)";
+    }
+    if (!newAddress.trim()) {
+      newErrors.address = "निवास / वार्ड का पता दर्ज करना अनिवार्य है (Address is required)";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const addVisit = () => {
+    if (!validateForm()) {
+      toast.error("कृपया सभी अनिवार्य फ़ील्ड (*) विधिवत भरें");
       return;
     }
     setAdding(true);
-    const newVisit: Visit = {
+    const newV: Visit = {
       id: Date.now(),
-      child_name: newChildName,
-      child_status: "normal",
-      address: newAddress,
+      child_id: visits.length + 1,
+      child_name: newChildName.trim(),
+      child_status: newStatus,
+      address: newAddress.trim(),
       due_date: new Date().toISOString().split("T")[0],
-      priority: "low",
+      priority: newPriority,
       completed: false,
-      notes: newNotes,
+      notes: newNotes.trim() || undefined,
+      assigned_officer: worker?.name || "श्रीमती प्रिया शर्मा",
     };
-    try {
-      await visitsAPI.create(newVisit);
-    } catch {}
-    setVisits((prev) => [newVisit, ...prev]);
-    setNewChildName(""); setNewAddress(""); setNewNotes("");
+    setVisits([newV, ...visits]);
+    setNewChildName("");
+    setNewAddress("");
+    setNewNotes("");
+    setErrors({});
     setShowForm(false);
     setAdding(false);
-    toast.success("नई गृह भेंट जोड़ी गई");
+    toast.success("नया गृह भेंट प्रकरण पंजीकृत व दर्ज किया गया (New Case Registered)");
   };
 
   const filtered = visits.filter((v) => {
@@ -135,159 +152,384 @@ export default function SmartVisits() {
   const completedCount = visits.filter((v) => v.completed).length;
   const samCount       = visits.filter((v) => !v.completed && v.child_status === "sam").length;
 
+  const nextCaseId = formatCaseId(visits.length + 1);
+  const todayFormatted = new Date().toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+
   return (
-    <div className="p-4 space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-6 lg:p-8 space-y-5 max-w-5xl mx-auto">
+      {/* Formal Header */}
+      <div className="bg-white p-5 rounded-xl border border-gray-200/80 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-bold text-gray-800 text-lg">🏠 स्मार्ट गृह भेंट</h1>
-          <p className="text-xs text-gray-500">SAM/MAM बच्चों की प्राथमिकता सूची</p>
+          <div className="flex items-center gap-2">
+            <Shield className="text-primary" size={20} />
+            <h1 className="font-bold text-gray-900 text-lg md:text-xl">
+              गृह भेंट व प्रकरण अनुवर्तन पंजी (Home Visits & Case Monitoring)
+            </h1>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            शासकीय बाल विकास सेवा • कुपोषण जोखिम प्रबंधन व प्रत्यक्ष गृह सत्यापन रजिस्टर
+          </p>
         </div>
+
         <button
-          onClick={() => setShowForm(!showForm)}
-          className="btn-primary text-xs px-3 py-2 flex items-center gap-1">
-          <Plus size={14} /> नई भेंट
+          onClick={() => {
+            setShowForm(!showForm);
+            setErrors({});
+          }}
+          className="btn-primary text-xs px-3.5 py-2 flex items-center gap-1.5 shadow-sm"
+        >
+          {showForm ? <X size={15} /> : <Plus size={15} />}
+          <span>{showForm ? "प्रपत्र बंद करें (Close Form)" : "नया प्रकरण पंजीकृत करें (Register New Case)"}</span>
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-4 gap-1.5">
+      {/* Metric Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "बाकी",     value: pendingCount,   color: "bg-orange-50 border-orange-200 text-orange-700" },
-          { label: "अत्यावश्यक", value: overdueCount,   color: "bg-red-50 border-red-200 text-red-700"    },
-          { label: "SAM",      value: samCount,        color: "bg-red-50 border-red-200 text-red-700"    },
-          { label: "पूर्ण",    value: completedCount,  color: "bg-green-50 border-green-200 text-green-700" },
+          { label: "लंबित प्रकरण (Pending)",     value: pendingCount,   color: "bg-orange-50 border-orange-200 text-orange-700" },
+          { label: "विलंबित अलर्ट (Overdue)",     value: overdueCount,   color: "bg-red-50 border-red-200 text-red-700"    },
+          { label: "गंभीर मामले (SAM Cases)",   value: samCount,        color: "bg-red-50 border-red-200 text-red-700"    },
+          { label: "निस्तारित (Case Resolved)", value: completedCount,  color: "bg-green-50 border-green-200 text-green-700" },
         ].map((s) => (
-          <div key={s.label} className={`card border text-center py-2 px-1 ${s.color}`}>
-            <div className="font-bold text-base">{s.value}</div>
-            <div className="text-[9px] mt-0.5">{s.label}</div>
+          <div key={s.label} className={`bg-white rounded-xl border p-3 text-center shadow-2xs ${s.color}`}>
+            <div className="font-black text-xl">{s.value}</div>
+            <div className="text-[11px] font-semibold mt-0.5">{s.label}</div>
           </div>
         ))}
       </div>
 
-      {/* Add visit form */}
+      {/* Structured Government Data Entry Form */}
       {showForm && (
-        <div className="card border border-primary/30 space-y-3">
-          <div className="text-sm font-semibold text-gray-700">नई गृह भेंट जोड़ें</div>
-          <input
-            value={newChildName}
-            onChange={(e) => setNewChildName(e.target.value)}
-            placeholder="बच्चे का नाम"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
-          />
-          <input
-            value={newAddress}
-            onChange={(e) => setNewAddress(e.target.value)}
-            placeholder="पता / वार्ड नंबर"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
-          />
-          <textarea
-            value={newNotes}
-            onChange={(e) => setNewNotes(e.target.value)}
-            placeholder="नोट्स (वैकल्पिक)"
-            rows={2}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"
-          />
-          <div className="flex gap-2">
-            <button onClick={addVisit} disabled={adding}
-              className="flex-1 btn-primary py-2 text-sm">
-              {adding ? "जोड़ रहे हैं..." : "जोड़ें"}
+        <div className="bg-white rounded-xl border border-gray-300 shadow-sm p-5 md:p-7 space-y-6 animate-fade-in transition-all">
+          {/* Official Document Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-border-subtle">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 bg-orange-50 rounded-lg text-primary border border-orange-200">
+                <FileText size={20} />
+              </div>
+              <div>
+                <h2 className="text-sm md:text-base font-bold text-main">
+                  शासकीय गृह भेंट व प्रकरण पंजीकरण प्रपत्र
+                </h2>
+                <p className="text-[11px] text-gray-500">
+                  महिला व बाल विकास विभाग • प्रपत्र प्रारूप: अनुसूची-क (Incident & Home Visit Case Form)
+                </p>
+              </div>
+            </div>
+            <span className="self-start sm:self-auto text-[11px] font-mono font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded border border-slate-200">
+              DOC: MWCD-FORM-2026-A
+            </span>
+          </div>
+
+          <div className="space-y-6 divide-y divide-border-subtle">
+            {/* Section 1: Case Information (Read-only / System Metadata) */}
+            <FormSection
+              title="1. Case Information (प्रकरण व प्रणाली विवरण)"
+              subtitle="सिस्टम द्वारा स्वचालित जनरेटेड विवरण एवं अभिलेख पहचान"
+              icon={Hash}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <FormField
+                  label="प्रकरण पहचान क्रमांक (Case ID)"
+                  helperText="सिस्टम जनरेटेड स्थायी संदर्भ आईडी"
+                >
+                  <input
+                    type="text"
+                    readOnly
+                    disabled
+                    value={`[ Auto-generated: AROMI-2026-${nextCaseId} ]`}
+                    className="input-gov font-mono text-gray-600 bg-gray-50/80 cursor-not-allowed border-dashed"
+                  />
+                </FormField>
+
+                <FormField
+                  label="पंजीकरण दिनांक (Reporting Date)"
+                  helperText="वर्तमान शासकीय प्रविष्टि समय"
+                >
+                  <input
+                    type="text"
+                    readOnly
+                    disabled
+                    value={todayFormatted}
+                    className="input-gov text-gray-600 bg-gray-50/80 cursor-not-allowed"
+                  />
+                </FormField>
+
+                <FormField
+                  label="संबद्ध अधिकारी (Assigned Officer)"
+                  helperText="आंगनवाड़ी कार्यकर्ता / पर्यवेक्षक"
+                >
+                  <input
+                    type="text"
+                    readOnly
+                    disabled
+                    value={worker?.name ? `${worker.name} (AWW)` : "श्रीमती प्रिया शर्मा (Supervisor / AWW)"}
+                    className="input-gov text-gray-600 bg-gray-50/80 cursor-not-allowed"
+                  />
+                </FormField>
+              </div>
+            </FormSection>
+
+            {/* Section 2: Personal Information (Beneficiary Details) */}
+            <FormSection
+              title="2. Personal Information (लाभार्थी व व्यक्तिगत विवरण)"
+              subtitle="लाभार्थी का प्राथमिक विवरण एवं आवासीय पता"
+              icon={UserCheck}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <FormField
+                  label="लाभार्थी का पूर्ण नाम (Beneficiary Full Name)"
+                  required
+                  error={errors.childName}
+                  helperText="पोषण ट्रैकर / आधार कार्ड अनुसार पूरा नाम लिखें"
+                >
+                  <input
+                    type="text"
+                    value={newChildName}
+                    onChange={(e) => {
+                      setNewChildName(e.target.value);
+                      if (errors.childName) setErrors((p) => ({ ...p, childName: undefined }));
+                    }}
+                    placeholder="उदा. राहुल संतोष जाधव"
+                    className={`input-gov ${errors.childName ? "border-danger-red ring-1 ring-danger-red bg-red-50/30" : ""}`}
+                  />
+                </FormField>
+
+                <FormField
+                  label="निवास स्थान / वार्ड क्रमांक (Location / Ward)"
+                  required
+                  error={errors.address}
+                  helperText="वार्ड सं., मकान सं. अथवा निकटतम पहचान स्थल"
+                >
+                  <input
+                    type="text"
+                    value={newAddress}
+                    onChange={(e) => {
+                      setNewAddress(e.target.value);
+                      if (errors.address) setErrors((p) => ({ ...p, address: undefined }));
+                    }}
+                    placeholder="उदा. वार्ड 4, मकान नं. 12, रेलवे क्रॉसिंग के पास"
+                    className={`input-gov ${errors.address ? "border-danger-red ring-1 ring-danger-red bg-red-50/30" : ""}`}
+                  />
+                </FormField>
+              </div>
+            </FormSection>
+
+            {/* Section 3: Clinical & Priority Classification */}
+            <FormSection
+              title="3. Classification & Urgency (पोषण वर्गीकरण व प्राथमिकता स्तर)"
+              subtitle="स्वास्थ्य स्थिति एवं अनुवर्ती कार्यवाही की प्राथमिकता"
+              icon={AlertTriangle}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <FormField
+                  label="प्रारंभिक पोषण वर्गीकरण (Nutrition Status)"
+                  helperText="शारीरिक माप अथवा पूर्व रिकॉर्ड अनुसार चुनें"
+                >
+                  <select
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value as any)}
+                    className="input-gov cursor-pointer"
+                  >
+                    <option value="sam">SAM (गंभीर कुपोषण — Severe Acute Malnutrition)</option>
+                    <option value="mam">MAM (मध्यम कुपोषण — Moderate Acute Malnutrition)</option>
+                    <option value="normal">Normal (सामान्य पोषण — Age Appropriate)</option>
+                  </select>
+                </FormField>
+
+                <FormField
+                  label="कार्यवाही प्राथमिकता स्तर (Priority Level)"
+                  helperText="दौरे की गंभीरता और तत्काल अनुवर्ती आवश्यकता"
+                >
+                  <select
+                    value={newPriority}
+                    onChange={(e) => setNewPriority(e.target.value as any)}
+                    className="input-gov cursor-pointer"
+                  >
+                    <option value="high">उच्च प्राथमिकता (High — 24-48 घंटों के भीतर अनिवार्य)</option>
+                    <option value="medium">मध्यम (Medium — 7 दिनों के भीतर फॉलो-अप)</option>
+                    <option value="low">सामान्य (Routine — मासिक नियमित समीक्षा)</option>
+                  </select>
+                </FormField>
+              </div>
+            </FormSection>
+
+            {/* Section 4: Supporting Information & Notes */}
+            <FormSection
+              title="4. Supporting Information & Notes (विभागीय निर्देश व संलग्नक)"
+              subtitle="परामर्श, राशन वितरण, दवा अथवा चिकित्सा संदर्भन विवरण"
+              icon={Paperclip}
+            >
+              <FormField
+                label="विभागीय टिप्पणी व निर्देश (Official Case Notes & Action Plan)"
+                helperText="माता-पिता को परामर्श, अतिरिक्त पोषण आहार, आयरन सिरप या PHC संदर्भन विवरण लिखें"
+              >
+                <textarea
+                  value={newNotes}
+                  onChange={(e) => setNewNotes(e.target.value)}
+                  placeholder="उदा. बच्चे की बांह परिधि कम है। टेक-होम राशन व पोषण परामर्श दिया गया। PHC स्वास्थ्य केंद्र रेफरल अनुशंसित।"
+                  rows={3}
+                  className="input-gov resize-none leading-relaxed"
+                />
+              </FormField>
+
+              {/* Supporting Document / Evidence Box */}
+              <div className="mt-3 p-3 bg-gray-50/70 border border-dashed border-gray-300 rounded-lg flex items-center justify-between text-xs text-gray-600">
+                <div className="flex items-center gap-2">
+                  <Paperclip size={15} className="text-gray-400" />
+                  <span>सहायक दस्तावेज़ / MCP कार्ड संलग्नक (वैकल्पिक)</span>
+                </div>
+                <span className="text-[11px] text-gray-400 font-mono">[ डिजिटल पोर्टल द्वारा समर्थित ]</span>
+              </div>
+            </FormSection>
+          </div>
+
+          {/* Form Actions — Standardized Government Buttons */}
+          <div className="pt-4 border-t border-border-subtle flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setShowForm(false);
+                setErrors({});
+              }}
+              className="btn-secondary w-full sm:w-auto text-xs px-4 py-2.5 font-semibold text-gray-700"
+            >
+              रद्द करें (Cancel)
             </button>
-            <button onClick={() => setShowForm(false)}
-              className="flex-1 py-2 rounded-lg text-sm border border-gray-200 text-gray-600">
-              रद्द करें
+
+            <button
+              type="button"
+              onClick={addVisit}
+              disabled={adding}
+              className="btn-primary w-full sm:w-auto text-xs px-5 py-2.5 font-semibold flex items-center justify-center gap-2 shadow-sm"
+            >
+              {adding ? (
+                <>
+                  <RefreshCw size={14} className="animate-spin" />
+                  <span>पंजीकरण जारी है...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle size={15} />
+                  <span>सत्यापन हेतु दर्ज करें (Submit for Verification)</span>
+                </>
+              )}
             </button>
           </div>
         </div>
       )}
 
-      {/* Filter tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+      {/* Filter Tabs */}
+      <div className="flex gap-1.5 bg-gray-100 rounded-xl p-1 max-w-sm">
         {(["pending", "completed", "all"] as const).map((f) => (
-          <button key={f} onClick={() => setFilter(f)}
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
             className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              filter === f ? "bg-white text-primary shadow-sm" : "text-gray-500"
-            }`}>
-            {f === "pending" ? "बाकी" : f === "completed" ? "पूर्ण" : "सभी"}
+              filter === f ? "bg-white text-primary shadow-2xs" : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            {f === "pending" ? "लंबित (Pending)" : f === "completed" ? "पूर्ण (Resolved)" : "सभी (All Cases)"}
           </button>
         ))}
       </div>
 
-      {/* Overdue banner */}
+      {/* Overdue Banner */}
       {overdueCount > 0 && filter !== "completed" && (
-        <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
-          <AlertTriangle size={14} className="text-red-500 shrink-0" />
-          <span className="text-xs text-red-700 font-semibold">
-            {overdueCount} गृह भेंट अत्यावश्यक — तुरंत जाएं
+        <div className="flex items-center gap-2.5 bg-red-50 border border-red-200/80 rounded-xl p-3 shadow-2xs">
+          <AlertTriangle size={16} className="text-red-600 shrink-0" />
+          <span className="text-xs text-red-800 font-bold">
+            {overdueCount} गृह भेंट प्रकरण विलंबित हैं — तत्काल अनुवर्ती कार्यवाही व सत्यापन आवश्यक
           </span>
         </div>
       )}
 
-      {/* Visit cards */}
+      {/* Visit Cases List */}
       <div className="space-y-3">
         {filtered.length === 0 && (
-          <div className="text-center py-8 text-gray-400 text-sm">
-            {filter === "completed" ? "कोई पूर्ण भेंट नहीं" : "सभी भेंट पूर्ण हो गई हैं 🎉"}
+          <div className="bg-white rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-400 text-xs">
+            {filter === "completed" ? "कोई पूर्ण प्रकरण नहीं मिला" : "सभी गृह भेंट प्रकरण सफलतापूर्वक पूर्ण हैं 🎉"}
           </div>
         )}
+
         {filtered.map((v) => {
           const pc = priorityConfig[v.priority];
-          const sc = statusConfig[v.child_status] || statusConfig.normal;
           const overdue = !v.completed && isOverdue(v.due_date);
+          const caseId = formatCaseId(v.child_id || v.id);
+
           return (
-            <div key={v.id} className={`card border-l-4 ${pc.border} ${v.completed ? "opacity-60" : ""}`}>
-              {/* Top row */}
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-semibold text-sm text-gray-800">{v.child_name}</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${sc.cls}`}>
-                      {sc.label}
+            <div
+              key={v.id}
+              className={`bg-white rounded-xl border border-gray-200/80 border-l-4 ${pc.border} p-4 md:p-5 shadow-2xs transition-all ${
+                v.completed ? "opacity-60 bg-gray-50/50" : ""
+              }`}
+            >
+              {/* Top Row: Case Header & Badges */}
+              <div className="flex items-start justify-between gap-3 pb-2.5 border-b border-gray-100">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-mono font-bold text-xs bg-gray-100 text-gray-800 px-2 py-0.5 rounded border border-gray-200">
+                    Case #{caseId}
+                  </span>
+                  <span className="font-bold text-sm text-gray-900">{v.child_name}</span>
+                  <StatusBadge status={v.child_status} size="sm" />
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${pc.cls}`}>
+                    {pc.label}
+                  </span>
+                  {overdue && (
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold">
+                      ⚠️ विलंबित अलर्ट (Overdue)
                     </span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${pc.cls}`}>
-                      {pc.label}
-                    </span>
-                    {overdue && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 font-semibold">
-                        ⚠️ विलंबित
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
+
                 {v.completed && (
-                  <CheckCircle size={18} className="text-green-500 shrink-0 mt-0.5" />
+                  <div className="flex items-center gap-1 text-green-700 text-xs font-bold shrink-0">
+                    <CheckCircle size={16} className="text-green-600" />
+                    <span>प्रकरण बंद (Closed)</span>
+                  </div>
                 )}
               </div>
 
-              {/* Address */}
-              <div className="flex items-center gap-1.5 mt-2 text-xs text-gray-500">
-                <MapPin size={11} className="shrink-0" />
-                <span>{v.address}</span>
-              </div>
-
-              {/* Due date */}
-              <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500">
-                <Clock size={11} className="shrink-0" />
-                <span className={overdue ? "text-red-600 font-semibold" : ""}>
-                  {overdue ? "अत्यावश्यक — " : "तारीख: "}{formatDate(v.due_date)}
-                </span>
+              {/* Middle Row: Metadata Details */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3 text-xs text-gray-600">
+                <div className="flex items-center gap-1.5">
+                  <MapPin size={13} className="text-gray-400 shrink-0" />
+                  <span className="truncate">{v.address}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Clock size={13} className="text-gray-400 shrink-0" />
+                  <span className={overdue ? "text-red-600 font-bold" : ""}>
+                    {overdue ? "अत्यावश्यक तिथि: " : "निर्धारित तिथि: "}{formatDate(v.due_date)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <UserCheck size={13} className="text-gray-400 shrink-0" />
+                  <span className="truncate">अधिकारी: {v.assigned_officer || worker?.name || "प्रिया शर्मा"}</span>
+                </div>
               </div>
 
               {/* Notes */}
               {v.notes && (
-                <div className="mt-2 text-xs text-gray-500 bg-gray-50 rounded-lg px-2 py-1.5">
-                  {v.notes}
+                <div className="mt-3 text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded-lg p-2.5 leading-relaxed">
+                  <strong>टिप्पणी व निर्देश:</strong> {v.notes}
                 </div>
               )}
 
-              {/* Mark done button */}
+              {/* Action: Close / Verify Case */}
               {!v.completed && (
-                <button
-                  onClick={() => markDone(v.id)}
-                  className="mt-3 w-full py-2 rounded-xl text-xs font-semibold bg-primary text-white hover:bg-orange-600 transition-all flex items-center justify-center gap-1.5">
-                  <CheckCircle size={13} />
-                  गृह भेंट पूर्ण करें
-                </button>
+                <div className="mt-3.5 pt-3 border-t border-gray-100 flex items-center justify-end">
+                  <button
+                    onClick={() => markDone(v.id)}
+                    className="px-4 py-2 rounded-lg text-xs font-bold bg-primary hover:bg-primary-dark text-white transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
+                  >
+                    <CheckCircle size={14} />
+                    <span>सत्यापन उपरांत प्रकरण बंद करें (Mark Verified & Close Case)</span>
+                  </button>
+                </div>
               )}
             </div>
           );

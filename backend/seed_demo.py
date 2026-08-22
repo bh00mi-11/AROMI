@@ -7,15 +7,14 @@ import sys, os, random
 sys.path.insert(0, os.path.dirname(__file__))
 
 from datetime import date, timedelta
-from passlib.context import CryptContext
 from app.database import SessionLocal, engine
+from app.auth import hash_password
 from app.models.models import (
     Base, Worker, Child, GrowthRecord, AttendanceRecord,
     HomeVisit, AgentEvent, NutritionStatus, RiskLevel
 )
 
 Base.metadata.create_all(bind=engine)
-pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 db = SessionLocal()
 random.seed(42)
 
@@ -27,7 +26,7 @@ else:
     worker = Worker(
         name="Priya Sharma",
         email="priya@aromi.demo",
-        hashed_password=pwd_ctx.hash("demo1234"),
+        hashed_password=hash_password("demo1234"),
         centre_id="AWC-PUNE-007",
         centre_name="Anganwadi Kendra No. 7, Pune Rural",
         village="Uruli Kanchan",
