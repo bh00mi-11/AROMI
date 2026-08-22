@@ -91,7 +91,7 @@ const priorityConfig = {
 
 export default function SmartVisits() {
   const { worker } = useAuth();
-  const [visits, setVisits] = useState<Visit[]>(SEED_VISITS);
+  const [visits, setVisits] = useState<Visit[]>([]);
   const [filter, setFilter] = useState<"pending" | "completed" | "all">("pending");
   const [showForm, setShowForm] = useState(false);
 
@@ -113,7 +113,7 @@ export default function SmartVisits() {
           setVisits(r.data.map((v: any) => ({ ...v, completed: false })));
         }
       })
-      .catch(() => {});
+      .catch((err) => { console.error(err); toast.error("?????? ??? ???? ??? ????"); });
   }, []);
 
   const markDone = async (id: number) => {

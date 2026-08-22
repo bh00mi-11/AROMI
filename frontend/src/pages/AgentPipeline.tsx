@@ -114,7 +114,7 @@ export default function AgentPipeline() {
               type="button"
               onClick={runAnimation}
               disabled={animating}
-              aria-label="Run automated agent pipeline demo simulation"
+              aria-label="Refresh Status"
               className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gov-blue ${
                 animating
                   ? "bg-slate-100 text-slate-500 cursor-not-allowed border border-border-subtle"

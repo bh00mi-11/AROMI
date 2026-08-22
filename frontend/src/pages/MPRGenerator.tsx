@@ -50,10 +50,9 @@ export default function MPRGenerator() {
       const res = await mprAPI.generate(month, year);
       setReport(res.data);
       toast.success("मासिक प्रगति प्रतिवेदन (MPR) सफलतापूर्वक संकलित!");
-    } catch {
-      // Demo offline fallback
-      setReport(DEMO_REPORT(month, year));
-      toast.success("मासिक प्रगति प्रतिवेदन (MPR) प्रारूप जनरेट किया गया (ऑफ़लाइन मॉडल)");
+    } catch (err) {
+      console.error(err);
+      toast.error("??????? ????? ??? ???? (Failed to generate report)");
     } finally {
       setLoading(false);
     }

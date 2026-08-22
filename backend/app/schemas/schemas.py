@@ -187,12 +187,47 @@ class MPROut(BaseModel):
 
 
 # ── Voice ─────────────────────────────────────────────────────────────────────
-class VoiceResponse(BaseModel):
+from enum import Enum as PyEnum
+
+class VoiceResponseMode(str, PyEnum):
+    answer = "answer"
+    list = "list"
+    navigate = "navigate"
+    draft_update = "draft_update"
+    pending_action = "pending_action"
+    clarification = "clarification"
+    error = "error"
+
+class ChildCandidate(BaseModel):
+    id: int
+    name: str
+
+class PendingActionOut(BaseModel):
+    type: str
+    child_id: Optional[int] = None
+    child_name: Optional[str] = None
+    previous_weight_kg: Optional[float] = None
+    weight_kg: Optional[float] = None
+    height_cm: Optional[float] = None
+    muac_cm: Optional[float] = None
+    suspicious: bool = False
+    warning: Optional[str] = None
+    confidence: Optional[float] = 1.0
+
+class VoiceProcessResponse(BaseModel):
     transcribed_text: str
+    normalized_text: str = ""
     detected_intent: str
+    confidence: float = 1.0
+    mode: VoiceResponseMode
+    agent_response_text: Optional[str] = None
     extracted_entities: dict
-    agent_response_text: str
-    action_taken: Optional[str] = None
+    data: Optional[dict] = None
+    route: Optional[str] = None
+    pending_action: Optional[PendingActionOut] = None
+    clarification: Optional[str] = None
+    candidates: Optional[List[ChildCandidate]] = None
+    language: str = "hindi"
 
 
 # ── RAG ───────────────────────────────────────────────────────────────────────

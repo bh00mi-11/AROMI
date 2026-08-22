@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     TTS_MODEL: str = "piper"                     # piper or indic
     WHISPER_MODEL: str = "base"                  # tiny / base / small
     ENVIRONMENT: str = "development"
+    CORS_ORIGINS: str = "*"
 
     # ── Twilio (WhatsApp + Voice Alerts) ──────────────────────────────
     # Leave blank to disable alerts (app won't crash, just logs a warning)

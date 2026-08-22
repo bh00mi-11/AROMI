@@ -65,10 +65,9 @@ export default function ActivityPlanner() {
       const planContent = res.data?.plan || res.data;
       setPlan(planContent);
       toast.success("दैनिक ईसीसीई पाठ योजना तैयार!");
-    } catch {
-      // Offline fallback
-      setPlan(DEMO_PLAN[language]);
-      toast.success("दैनिक ईसीसीई पाठ योजना तैयार (ऑफ़लाइन मानक मॉडल)");
+    } catch (err) {
+      console.error(err);
+      toast.error("????? ????? ??? ???? (Failed to generate plan)");
     } finally {
       setLoading(false);
     }
