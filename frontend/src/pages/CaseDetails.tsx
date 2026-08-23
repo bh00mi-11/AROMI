@@ -236,17 +236,40 @@ export default function CaseDetails() {
         <div className="space-y-6">
           {/* Administrative Metadata */}
           <div className="bg-white rounded-xl border border-border-subtle p-6 shadow-2xs space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 pb-2 border-b border-border-subtle">
-              प्रशासनिक विवरण व अभिभावक पहचान (Family & Administrative Record)
-            </h3>
+            <div className="flex items-center justify-between pb-2 border-b border-border-subtle">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                प्रशासनिक विवरण व अभिभावक पहचान (Family & Administrative Record)
+              </h3>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.location.href = "tel:+919876543210"}
+                  title="कॉल करें (Call)"
+                  className="p-1.5 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg border border-green-200 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                  <span className="hidden sm:inline">कॉल</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.open("https://wa.me/919876543210?text=नमस्ते, AROMI आंगनवाड़ी केंद्र से संपर्क कर रहे हैं।", "_blank")}
+                  title="WhatsApp संदेश (WhatsApp Message)"
+                  className="p-1.5 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 rounded-lg border border-[#25D366]/30 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                  <span className="hidden sm:inline">WhatsApp</span>
+                </button>
+              </div>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
               <div className="p-3 bg-bg-base/70 rounded-lg border border-border-subtle">
                 <span className="text-slate-500 block text-[11px] font-bold uppercase">माता का नाम</span>
                 <span className="font-bold text-text-main text-sm">{child.mother_name || "श्रीमती सुनीता देवी"}</span>
               </div>
               <div className="p-3 bg-bg-base/70 rounded-lg border border-border-subtle">
-                <span className="text-slate-500 block text-[11px] font-bold uppercase">पिता का नाम</span>
+                <span className="text-slate-500 block text-[11px] font-bold uppercase">पिता का नाम (संपर्क सूत्र)</span>
                 <span className="font-bold text-text-main text-sm">{child.father_name || "श्री संतोष जाधव"}</span>
+                <div className="text-xs text-slate-500 mt-0.5">+91 98765 43210</div>
               </div>
               <div className="p-3 bg-bg-base/70 rounded-lg border border-border-subtle">
                 <span className="text-slate-500 block text-[11px] font-bold uppercase">संबद्ध केंद्र व सेक्टर</span>

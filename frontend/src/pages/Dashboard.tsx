@@ -120,7 +120,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="p-6 md:p-8 space-y-6 w-full">
       {/* Formal Header */}
       <div className="bg-white rounded-xl border border-border-subtle p-5 md:p-6 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -279,9 +279,9 @@ export default function Dashboard() {
           </div>
 
           {/* Lower Grid: 2 Columns on Desktop */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Column 1: Recent Activity Timeline (7 Cols) */}
-            <div className="lg:col-span-7 bg-white rounded-xl border border-border-subtle p-5 md:p-6 shadow-2xs">
+          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(0,1.4fr)] gap-6">
+            {/* Column 1: Recent Activity Timeline */}
+            <div className="bg-white rounded-xl border border-border-subtle p-5 md:p-6 shadow-2xs min-w-0">
               <div className="flex items-center justify-between pb-3.5 border-b border-border-subtle mb-4">
                 <div className="flex items-center gap-2.5">
                   <Activity size={19} className="text-primary-navy" />
@@ -323,8 +323,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Column 2: System Health & Nutrition Distribution (5 Cols) */}
-            <div className="lg:col-span-5 bg-white rounded-xl border border-border-subtle p-5 md:p-6 shadow-2xs flex flex-col justify-between">
+            {/* Column 2: System Health & Nutrition Distribution */}
+            <div className="bg-white rounded-xl border border-border-subtle p-5 md:p-6 shadow-2xs flex flex-col justify-between min-w-0">
               <div>
                 <div className="flex items-center justify-between pb-3.5 border-b border-border-subtle mb-4">
                   <h2 className="font-bold text-base text-text-main">

@@ -111,7 +111,7 @@ export default function Layout() {
         </header>
 
         {/* Dynamic Main Body */}
-        <main className="flex-1 overflow-y-auto pb-24 md:pb-10 w-full max-w-7xl mx-auto" id="main-content">
+        <main className="flex-1 overflow-y-auto pb-24 md:pb-10 w-full" id="main-content">
           <Outlet />
         </main>
       </div>

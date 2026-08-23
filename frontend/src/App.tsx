@@ -26,37 +26,31 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   return worker ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
-import VoiceOverlay from "./components/VoiceOverlay";
-import { VoiceProvider } from "./features/voice/voiceContext";
-
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <VoiceProvider>
-          <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={
-              <PrivateRoute><Layout /></PrivateRoute>
-            }>
-              <Route index element={<Dashboard />} />
-              <Route path="children" element={<Children />} />
-              <Route path="children/:id" element={<CaseDetails />} />
-              <Route path="cases/:id" element={<CaseDetails />} />
-              <Route path="growth" element={<GrowthTracker />} />
-              <Route path="activity" element={<ActivityPlanner />} />
-              <Route path="mpr" element={<MPRGenerator />} />
-              <Route path="voice" element={<VoiceAgent />} />
-              <Route path="rag" element={<RAGQuery />} />
-              <Route path="agent" element={<AgentPipeline />} />
-              <Route path="photo" element={<PhotoCheck />} />
-              <Route path="attendance" element={<Attendance />} />
-              <Route path="visits" element={<SmartVisits />} />
-            </Route>
-          </Routes>
-          <VoiceOverlay />
-        </VoiceProvider>
+        <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={
+            <PrivateRoute><Layout /></PrivateRoute>
+          }>
+            <Route index element={<Dashboard />} />
+            <Route path="children" element={<Children />} />
+            <Route path="children/:id" element={<CaseDetails />} />
+            <Route path="cases/:id" element={<CaseDetails />} />
+            <Route path="growth" element={<GrowthTracker />} />
+            <Route path="activity" element={<ActivityPlanner />} />
+            <Route path="mpr" element={<MPRGenerator />} />
+            <Route path="voice" element={<VoiceAgent />} />
+            <Route path="rag" element={<RAGQuery />} />
+            <Route path="agent" element={<AgentPipeline />} />
+            <Route path="photo" element={<PhotoCheck />} />
+            <Route path="attendance" element={<Attendance />} />
+            <Route path="visits" element={<SmartVisits />} />
+          </Route>
+        </Routes>
       </BrowserRouter>
     </AuthProvider>
   );

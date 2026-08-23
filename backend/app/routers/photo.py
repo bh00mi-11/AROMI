@@ -139,7 +139,7 @@ Be evidence-based and precise: base your classification strictly on what is visu
 
     except Exception as e:
         print(f"[AROMI Photo Check] OpenRouter API call failed: {type(e).__name__}: {e}")
-        raise HTTPException(status_code=500, detail="Photo analysis failed. Ensure OPENROUTER_API_KEY is valid.")
+        raise HTTPException(status_code=500, detail=f"Photo analysis failed: {str(e)}")
 
     # ── SAM Escalation: WhatsApp + Hindi voice call ───────────────────
     alert_sids = {}

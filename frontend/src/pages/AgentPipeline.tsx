@@ -114,7 +114,7 @@ export default function AgentPipeline() {
               type="button"
               onClick={runAnimation}
               disabled={animating}
-              aria-label="Refresh Status"
+              aria-label="Run automated agent pipeline demo simulation"
               className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gov-blue ${
                 animating
                   ? "bg-slate-100 text-slate-500 cursor-not-allowed border border-border-subtle"
@@ -232,7 +232,7 @@ export default function AgentPipeline() {
             ))}
           </div>
 
-          <div className="card space-y-4">
+          <div className="bg-white rounded-xl shadow-2xs border border-border-subtle p-6 space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-border-subtle">
               <BarChart2 size={16} className="text-primary-navy" />
               <h2 className="text-sm font-bold text-text-main">समग्र पोषण स्थिति वितरण</h2>
@@ -242,7 +242,7 @@ export default function AgentPipeline() {
             <ImpactBar label="SAM (गंभीर कुपोषण)" value={metrics.sam_count}    max={metrics.total_children} color="bg-rose-600" />
           </div>
 
-          <div className="card space-y-4">
+          <div className="bg-white rounded-xl shadow-2xs border border-border-subtle p-6 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-border-subtle">
               <div className="flex items-center gap-2">
                 <Activity size={16} className="text-primary-navy" />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   TrendingUp,
   AlertTriangle,
@@ -13,7 +13,6 @@ import {
   FileCheck,
 } from "lucide-react";
 import { growthAPI } from "../lib/api";
-import { useVoiceContext } from "../features/voice/voiceContext";
 import toast from "react-hot-toast";
 import { FormField, FormSection } from "../components/FormField";
 import AIAnalysisPanel, { DetectedEntity } from "../components/AIAnalysisPanel";
@@ -49,27 +48,6 @@ export default function GrowthTracker() {
   // Conflict Engine Modal state
   const [conflicts, setConflicts] = useState<ClinicalConflict[]>([]);
   const [showConflictModal, setShowConflictModal] = useState(false);
-
-  const { context, updateContext } = useVoiceContext();
-
-  useEffect(() => {
-    updateContext({
-      active_form: "growth",
-      draft_fields: { weight_kg: weight, height_cm: height, muac_cm: muac }
-    });
-  }, []);
-
-  useEffect(() => {
-    if (context.draft_fields.weight_kg !== undefined && context.draft_fields.weight_kg !== weight) {
-      setWeight(String(context.draft_fields.weight_kg));
-    }
-    if (context.draft_fields.height_cm !== undefined && context.draft_fields.height_cm !== height) {
-      setHeight(String(context.draft_fields.height_cm));
-    }
-    if (context.draft_fields.muac_cm !== undefined && context.draft_fields.muac_cm !== muac) {
-      setMuac(String(context.draft_fields.muac_cm));
-    }
-  }, [context.draft_fields]);
 
   const handleSelectSample = (b: typeof SAMPLE_BENEFICIARIES[0]) => {
     setSelectedChildId(b.id);

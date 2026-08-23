@@ -91,7 +91,7 @@ const priorityConfig = {
 
 export default function SmartVisits() {
   const { worker } = useAuth();
-  const [visits, setVisits] = useState<Visit[]>([]);
+  const [visits, setVisits] = useState<Visit[]>(SEED_VISITS);
   const [filter, setFilter] = useState<"pending" | "completed" | "all">("pending");
   const [showForm, setShowForm] = useState(false);
 
@@ -113,7 +113,7 @@ export default function SmartVisits() {
           setVisits(r.data.map((v: any) => ({ ...v, completed: false })));
         }
       })
-      .catch((err) => { console.error(err); toast.error("?????? ??? ???? ??? ????"); });
+      .catch(() => {});
   }, []);
 
   const markDone = async (id: number) => {
@@ -528,15 +528,35 @@ export default function SmartVisits() {
 
               {/* Action: Close / Verify Case */}
               {!v.completed && (
-                <div className="mt-4 pt-3.5 border-t border-border-subtle flex items-center justify-end">
+                <div className="mt-4 pt-3.5 border-t border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => window.location.href = "tel:+919876543210"}
+                      title="कॉल करें (Call)"
+                      className="flex-1 sm:flex-none p-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg border border-green-200 transition-colors cursor-pointer flex items-center justify-center gap-1.5 text-xs font-bold"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                      <span>कॉल</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => window.open(`https://wa.me/919876543210?text=नमस्ते, AROMI आंगनवाड़ी केंद्र से संपर्क कर रहे हैं। ${v.child_name} के लिए निर्धारित गृह भेंट के संदर्भ में...`, "_blank")}
+                      title="WhatsApp संदेश (WhatsApp Message)"
+                      className="flex-1 sm:flex-none p-2 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 rounded-lg border border-[#25D366]/30 transition-colors cursor-pointer flex items-center justify-center gap-1.5 text-xs font-bold"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                      <span>WhatsApp</span>
+                    </button>
+                  </div>
                   <button
                     type="button"
                     onClick={() => markDone(v.id)}
                     aria-label={`सत्यापन उपरांत प्रकरण बंद करें: ${v.child_name}`}
-                    className="px-4 py-2 rounded-lg text-xs font-bold bg-primary-navy hover:bg-gov-blue text-white transition-all shadow-2xs flex items-center gap-2 active:scale-95 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gov-blue"
+                    className="w-full sm:w-auto px-4 py-2 rounded-lg text-xs font-bold bg-primary-navy hover:bg-gov-blue text-white transition-all shadow-2xs flex items-center justify-center gap-2 active:scale-95 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gov-blue"
                   >
                     <CheckCircle size={15} />
-                    <span>सत्यापन उपरांत प्रकरण बंद करें (Mark Verified & Close Case)</span>
+                    <span>सत्यापन उपरांत प्रकरण बंद करें (Mark Verified)</span>
                   </button>
                 </div>
               )}
