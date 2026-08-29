@@ -35,7 +35,7 @@ At the grassroots level of India's healthcare system, **Anganwadi Workers (AWWs)
 5. 🔍 **Explainable AI (XAI) Panel:** Transparent decision support displaying confidence meters, SHAP feature weights, verified citation popups, sequential protocol steps, and Web Speech TTS audio readouts.
 6. 📅 **Smart Triage & Visit Scheduler:** Algorithmic scheduler that prioritizes home visits based on clinical urgency, complete with 1-click WhatsApp and Phone call integrations.
 
-> 📖 **Looking for a deep-dive on recent upgrades?** See the [Complete Improvements & Architecture Changelog](file:///home/ameya/Downloads/AROMI-main/IMPROVEMENTS_README.md).
+> 📖 **Looking for a deep-dive on recent upgrades?** See the [Complete Improvements & Architecture Changelog](IMPROVEMENTS_README.md).
 
 ---
 
