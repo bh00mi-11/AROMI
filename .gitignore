@@ -11,3 +11,7 @@ __pycache__
 !.env.example
 !backend/.env.example
 !frontend/.env.example
+*.db
+*.sqlite
+*.sqlite3
+chroma_db/

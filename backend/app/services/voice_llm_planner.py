@@ -24,7 +24,7 @@ def get_tool_schemas() -> List[dict]:
         })
     return schemas
 
-def run_llm_planner(transcript: str, context: dict) -> List[dict]:
+async def run_llm_planner(transcript: str, context: dict) -> List[dict]:
     sys_prompt = f"""You are AROMI Voice Orchestrator. 
 Convert the user's natural language request into a sequence of tool calls.
 Available Tools:
@@ -41,7 +41,7 @@ Example:
 ]
 """
     try:
-        response_text = chat_completion(
+        response_text = await chat_completion(
             messages=[
                 {"role": "system", "content": sys_prompt},
                 {"role": "user", "content": transcript}
@@ -49,7 +49,7 @@ Example:
         )
         # Attempt to parse JSON array
         # Clean up possible markdown fences
-        clean_text = response_text.replace("`json", "").replace("`", "").strip()
+        clean_text = response_text.replace("```json", "").replace("```", "").strip()
         tools = json.loads(clean_text)
         if isinstance(tools, list):
             return tools
@@ -60,7 +60,7 @@ Example:
         logger.error(f"LLM planner failed: {e}")
         return []
 
-def plan_voice_action(transcript: str, context: dict) -> List[dict]:
+async def plan_voice_action(transcript: str, context: dict) -> List[dict]:
     # 1. Deterministic check for exact 50 commands compatibility
     intent, conf = classifier.classify(transcript)
     if conf >= 0.85:
@@ -69,5 +69,5 @@ def plan_voice_action(transcript: str, context: dict) -> List[dict]:
         return [{"tool": "LEGACY_INTENT", "intent": intent}]
 
     # 2. LLM Planner
-    llm_plan = run_llm_planner(transcript, context)
+    llm_plan = await run_llm_planner(transcript, context)
     return llm_plan

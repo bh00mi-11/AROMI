@@ -90,6 +90,10 @@ def create_visit(
     db.add(visit)
     db.commit()
     db.refresh(visit)
+
+    from app.services.cache import invalidate_dashboard_stats
+    invalidate_dashboard_stats(worker.id)
+
     return {
         "id": visit.id,
         "child_id": visit.child_id,
@@ -118,4 +122,8 @@ def complete_visit(
         if data.findings:
             visit.findings = data.findings
     db.commit()
+
+    from app.services.cache import invalidate_dashboard_stats
+    invalidate_dashboard_stats(worker.id)
+
     return {"id": visit.id, "completed": True, "message": "Visit marked completed"}

@@ -124,18 +124,25 @@ Return ONLY valid JSON in this exact format (all text values in {lang_name}):
 
 Generate exactly 3 activities. Make them age-appropriate, culturally relevant, using locally available materials."""
 
-    plan_data = None
-    try:
-        content = await chat_completion([{"role": "user", "content": prompt}], max_tokens=1500)
-        clean = content.strip()
-        if clean.startswith("```"):
-            clean = clean.split("```")[1]
-            if clean.startswith("json"):
-                clean = clean[4:]
-        plan_data = json.loads(clean.strip())
-    except Exception:
-        fallback = DEFAULT_ACTIVITY_PLANS.get(language, DEFAULT_ACTIVITY_PLANS["hindi"])
-        plan_data = dict(fallback)
+    from app.services.cache import get_cached_activity_plan, set_cached_activity_plan
+
+    # 1. Check cache first
+    cached_plan = get_cached_activity_plan(age_group, child_count, language)
+    if cached_plan:
+        plan_data = dict(cached_plan)
+    else:
+        try:
+            content = await chat_completion([{"role": "user", "content": prompt}], max_tokens=1500)
+            clean = content.strip()
+            if clean.startswith("```"):
+                clean = clean.split("```")[1]
+                if clean.startswith("json"):
+                    clean = clean[4:]
+            plan_data = json.loads(clean.strip())
+            set_cached_activity_plan(age_group, child_count, language, plan_data)
+        except Exception:
+            fallback = DEFAULT_ACTIVITY_PLANS.get(language, DEFAULT_ACTIVITY_PLANS["hindi"])
+            plan_data = dict(fallback)
 
     # Save to DB
     record = ActivityPlan(

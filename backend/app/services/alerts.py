@@ -12,8 +12,12 @@ Flow:
   Hindi voice call triggered automatically
 """
 
+import asyncio
+import logging
 from twilio.rest import Client
 from app.config import settings
+
+logger = logging.getLogger("aromi.alerts")
 
 _client = None
 
@@ -25,6 +29,12 @@ def _get_client() -> Client:
             settings.TWILIO_ACCOUNT_SID,
             settings.TWILIO_AUTH_TOKEN,
         )
+        # Configure reasonable HTTP timeout if supported by client session
+        try:
+            if hasattr(_client, "http_client"):
+                _client.http_client.timeout = 10.0
+        except Exception:
+            pass
     return _client
 
 
@@ -60,7 +70,7 @@ _यह संदेश AROMI AI सिस्टम द्वारा स्व
         return msg.sid
     except Exception as e:
         # Log but don't crash the main endpoint
-        print(f"[AROMI Alerts] WhatsApp send failed to {to_number}: {e}")
+        logger.error(f"[AROMI Alerts] WhatsApp send failed to {to_number}: {e}")
         return f"error:{e}"
 
 
@@ -94,7 +104,7 @@ def make_hindi_voice_call(
         )
         return call.sid
     except Exception as e:
-        print(f"[AROMI Alerts] Voice call failed to {to_number}: {e}")
+        logger.error(f"[AROMI Alerts] Voice call failed to {to_number}: {e}")
         return f"error:{e}"
 
 
@@ -140,3 +150,23 @@ def trigger_sam_escalation(
     )
 
     return results
+
+
+async def trigger_sam_escalation_async(
+    parent_number: str,
+    supervisor_number: str,
+    child_name: str,
+) -> dict:
+    """
+    Async wrapper for non-blocking execution inside task_queue workers.
+    """
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(
+        None,
+        lambda: trigger_sam_escalation(
+            parent_number=parent_number,
+            supervisor_number=supervisor_number,
+            child_name=child_name,
+        ),
+    )
+

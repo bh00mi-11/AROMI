@@ -141,23 +141,25 @@ Be evidence-based and precise: base your classification strictly on what is visu
         print(f"[AROMI Photo Check] OpenRouter API call failed: {type(e).__name__}: {e}")
         raise HTTPException(status_code=500, detail=f"Photo analysis failed: {str(e)}")
 
-    # ── SAM Escalation: WhatsApp + Hindi voice call ───────────────────
+    # ── SAM Escalation: WhatsApp + Hindi voice call (Non-blocking queue) ──
     alert_sids = {}
     if result.get("status") == "sam" and settings.TWILIO_ACCOUNT_SID:
         try:
-            from app.services.alerts import trigger_sam_escalation
-            # Run in background so HTTP response isn't delayed
-            loop = asyncio.get_event_loop()
-            alert_sids = await loop.run_in_executor(
-                None,
-                lambda: trigger_sam_escalation(
-                    parent_number=settings.ALERT_PARENT_NUMBER,
-                    supervisor_number=settings.ALERT_SUPERVISOR_NUMBER,
-                    child_name=child_name,
-                ),
+            from app.services.alerts import trigger_sam_escalation_async
+            from app.services.task_queue import enqueue_background_task
+
+            task_id = enqueue_background_task(
+                "sam_photo_escalation",
+                trigger_sam_escalation_async,
+                parent_number=settings.ALERT_PARENT_NUMBER,
+                supervisor_number=settings.ALERT_SUPERVISOR_NUMBER,
+                child_name=child_name,
+                timeout_seconds=20.0,
+                max_retries=2,
             )
+            alert_sids = {"status": "enqueued", "task_id": task_id}
         except Exception as alert_err:
-            print(f"[AROMI Alerts] Escalation error: {alert_err}")
+            print(f"[AROMI Alerts] Escalation queue error: {alert_err}")
             alert_sids = {"error": str(alert_err)}
 
     return {
@@ -214,21 +216,23 @@ async def photo_check_demo(
     }
     demo_result = demo_results.get(status, demo_results["mam"])
 
-    # ── SAM Escalation on demo too (for live judging demos) ──────────
+    # ── SAM Escalation on demo too (non-blocking background task) ─────
     alert_sids = {}
     if status == "sam" and settings.TWILIO_ACCOUNT_SID:
         try:
-            from app.services.alerts import trigger_sam_escalation
-            import asyncio
-            loop = asyncio.get_event_loop()
-            alert_sids = await loop.run_in_executor(
-                None,
-                lambda: trigger_sam_escalation(
-                    parent_number=settings.ALERT_PARENT_NUMBER,
-                    supervisor_number=settings.ALERT_SUPERVISOR_NUMBER,
-                    child_name=child_name,
-                ),
+            from app.services.alerts import trigger_sam_escalation_async
+            from app.services.task_queue import enqueue_background_task
+
+            task_id = enqueue_background_task(
+                "sam_demo_escalation",
+                trigger_sam_escalation_async,
+                parent_number=settings.ALERT_PARENT_NUMBER,
+                supervisor_number=settings.ALERT_SUPERVISOR_NUMBER,
+                child_name=child_name,
+                timeout_seconds=20.0,
+                max_retries=2,
             )
+            alert_sids = {"status": "enqueued", "task_id": task_id}
         except Exception as e:
             alert_sids = {"error": str(e)}
 

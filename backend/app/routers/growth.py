@@ -62,6 +62,9 @@ async def record_growth(
     db.commit()
     db.refresh(record)
 
+    from app.services.cache import invalidate_dashboard_stats
+    invalidate_dashboard_stats(worker.id)
+
     # ── AUTO-TRIGGER INTERVENTION AGENT for MAM/SAM ──
     if status.value in ("mam", "sam"):
         await tool_growth_alert(

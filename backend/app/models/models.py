@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Float, Date, DateTime, Boolean, ForeignKey, Text, Enum
+from sqlalchemy import Column, Integer, String, Float, Date, DateTime, Boolean, ForeignKey, Text, Enum, Index
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
+from pgvector.sqlalchemy import Vector
 from app.database import Base
 
 
@@ -244,15 +245,19 @@ class AgentEvent(Base):
 
 
 class RAGDocument(Base):
-    """Indexed WHO/ICDS documents for RAG"""
+    """Indexed WHO/ICDS documents for RAG stored in Supabase with pgvector"""
     __tablename__ = "rag_documents"
 
     id = Column(Integer, primary_key=True, index=True)
+    doc_id = Column(String, unique=True, index=True, nullable=True) # e.g. "doc_0"
     title = Column(String, nullable=False)
     source = Column(String, nullable=False)             # "WHO", "ICDS", "POSHAN"
+    context = Column(Text, nullable=True)
     content = Column(Text, nullable=False)
+    keywords = Column(Text, nullable=True)              # Space-separated or JSON keywords
+    contextualized_text = Column(Text, nullable=True)
     chunk_index = Column(Integer, default=0)
-    embedding_id = Column(String, nullable=True)        # ChromaDB ID
+    embedding = Column(Vector(384), nullable=True)      # 384 dimensions for multilingual-e5-small
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

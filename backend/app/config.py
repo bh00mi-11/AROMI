@@ -6,13 +6,17 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     DATABASE_URL: str = "sqlite:///./aromi.db"
+    SUPABASE_URL: str = ""
+    SUPABASE_KEY: str = ""
     JWT_SECRET: str = "change-me-in-production"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     OPENROUTER_API_KEY: str = ""
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
     LLM_MODEL: str = "anthropic/claude-3-haiku"
-    CHROMA_PERSIST_DIR: str = "./chroma_db"
+    EMBEDDING_MODEL: str = "intfloat/multilingual-e5-small"
+    RAG_RELEVANCE_THRESHOLD: float = 0.78
+    CHROMA_PERSIST_DIR: Optional[str] = "./chroma_db"
     TTS_MODEL: str = "piper"                     # piper or indic
     WHISPER_MODEL: str = "base"                  # tiny / base / small
     ENVIRONMENT: str = "development"

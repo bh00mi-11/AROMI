@@ -5,9 +5,11 @@ The model is instantiated once on first use and reused for every subsequent
 request, avoiding the overhead of loading weights on every /voice/process call.
 """
 
+import io
 import logging
 import os
 import threading
+from typing import Union, BinaryIO, Optional
 
 log = logging.getLogger(__name__)
 
@@ -44,16 +46,22 @@ def _get_model():
 VOCABULARY_PROMPT = "AROMI, active cases, pending cases, resolved cases, dashboard, reports, alerts, urgent, emergency, high priority, Pune, case ID, report ID, profile, notifications, Rahul Sharma, weight, height, MUAC, kilogram, centimeter, वजन, रिपोर्ट, अलर्ट, डैशबोर्ड, केस"
 
 
-def transcribe_audio(file_path: str, language: str = None) -> str:
+def transcribe_audio(
+    audio_source: Union[str, BinaryIO, bytes, io.BytesIO],
+    language: Optional[str] = None,
+    beam_size: Optional[int] = None,
+) -> str:
     """
-    Transcribe an audio file to text using Faster-Whisper.
+    Transcribe audio from a file path or in-memory buffer to text using Faster-Whisper.
 
     Parameters
     ----------
-    file_path : str
-        Path to the audio file on disk.
-    language : str
+    audio_source : Union[str, BinaryIO, bytes, io.BytesIO]
+        Path to audio file on disk, or in-memory binary stream / raw bytes.
+    language : Optional[str]
         Language code for transcription (default: None).
+    beam_size : Optional[int]
+        Beam size for decoding. Defaults to env WHISPER_BEAM_SIZE or 1 for fast CPU inference.
 
     Returns
     -------
@@ -62,11 +70,23 @@ def transcribe_audio(file_path: str, language: str = None) -> str:
     """
     model = _get_model()
 
+    if isinstance(audio_source, (bytes, bytearray)):
+        audio_input = io.BytesIO(audio_source)
+    else:
+        audio_input = audio_source
+
+    if beam_size is None:
+        try:
+            beam_size = int(os.getenv("WHISPER_BEAM_SIZE", "1"))
+        except (ValueError, TypeError):
+            beam_size = 1
+
     segments, info = model.transcribe(
-        file_path,
+        audio_input,
         language=language,
         vad_filter=True,
-        beam_size=5,
+        beam_size=beam_size,
+        temperature=0.0,
         initial_prompt=VOCABULARY_PROMPT
     )
 

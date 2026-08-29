@@ -1,18 +1,31 @@
 import os
+from contextlib import asynccontextmanager
 from app.config import settings
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.database import engine, Base
+from app.services.task_queue import task_queue
 from app.routers import auth, children, growth, attendance, visits, activity, mpr, voice, rag, agent, dashboard, photo
 
 Base.metadata.create_all(bind=engine)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: start background task workers
+    await task_queue.start()
+    yield
+    # Shutdown: cleanly terminate workers
+    await task_queue.stop()
+
 
 app = FastAPI(
     title="AROMI — Anganwadi AI Assistant",
     description="Agentic AI system for Anganwadi workers. Hindi-first, offline-capable.",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(

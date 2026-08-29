@@ -161,6 +161,7 @@ export const photoAPI = {
 export const ragAPI = {
   query: (question: string, language = "hindi") =>
     api.post("/rag/query", { question, language }),
+  sources: () => api.get("/rag/sources"),
 };
 
 export const agentAPI = {

@@ -34,6 +34,10 @@ async def bulk_attendance(
         db.add(rec)
         records.append(rec)
     db.commit()
+
+    from app.services.cache import invalidate_dashboard_stats
+    invalidate_dashboard_stats(worker.id)
+
     return {"recorded": len(records), "date": str(data.date)}
 
 

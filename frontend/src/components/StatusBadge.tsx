@@ -64,6 +64,38 @@ export default function StatusBadge({
       border: "border-blue-200",
       dot: "bg-blue-600",
     };
+  } else if (normalized === "info" || normalized === "verified" || normalized === "guideline" || normalized === "प्रमाणित") {
+    config = {
+      label: customLabel || "सत्यापित मार्गदर्शक (Official Guideline)",
+      bg: "bg-emerald-50",
+      text: "text-emerald-800",
+      border: "border-emerald-200",
+      dot: "bg-emerald-600",
+    };
+  } else if (normalized === "warning" || normalized === "out_of_domain" || normalized === "unbacked" || normalized === "अपुष्ट") {
+    config = {
+      label: customLabel || "अधिकृत आधार उपलब्ध नाही (Out of Domain)",
+      bg: "bg-amber-50",
+      text: "text-amber-800",
+      border: "border-amber-200",
+      dot: "bg-amber-600",
+    };
+  } else if (normalized === "conflict" || normalized === "तफावत") {
+    config = {
+      label: customLabel || "तफावत (Data Conflict)",
+      bg: "bg-purple-50",
+      text: "text-purple-800",
+      border: "border-purple-200",
+      dot: "bg-purple-600",
+    };
+  } else if (normalized === "error" || normalized === "failed" || normalized === "त्रुटी") {
+    config = {
+      label: customLabel || "त्रुटी (Error)",
+      bg: "bg-red-50",
+      text: "text-red-800",
+      border: "border-red-200",
+      dot: "bg-red-600",
+    };
   }
 
   const sizeClasses =

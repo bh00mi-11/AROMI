@@ -1,5 +1,4 @@
-import os
-import tempfile
+import io
 import json
 import logging
 import re
@@ -29,12 +28,8 @@ async def process_voice(
     worker: Worker = Depends(get_current_worker)
 ):
     try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp:
-            tmp.write(await audio.read())
-            tmp_path = tmp.name
-
-        transcribed_text = transcribe_audio(tmp_path, language="hi")
-        os.unlink(tmp_path)
+        audio_bytes = await audio.read()
+        transcribed_text = transcribe_audio(io.BytesIO(audio_bytes), language="hi")
     except Exception as e:
         logger.error(f"Voice process failed: {e}")
         return VoiceProcessResponse(
@@ -65,8 +60,8 @@ async def process_voice(
         except:
             pass
 
-    # 1. PLAN
-    tool_plan = plan_voice_action(norm_text, frontend_context)
+    # 1. PLAN (Async LLM Planner / Deterministic Classifier)
+    tool_plan = await plan_voice_action(norm_text, frontend_context)
 
     # 2. EXECUTE
     response = execute_tools(tool_plan, db, worker, transcribed_clean)

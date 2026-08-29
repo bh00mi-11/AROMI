@@ -4,12 +4,17 @@ from datetime import date
 from app.database import get_db
 from app.auth import get_current_worker
 from app.models.models import Worker, Child, AttendanceRecord, HomeVisit, NutritionStatus
+from app.services.cache import get_cached_dashboard_stats, set_cached_dashboard_stats
 
 router = APIRouter()
 
 
 @router.get("/stats")
 def get_dashboard_stats(db: Session = Depends(get_db), worker: Worker = Depends(get_current_worker)):
+    cached = get_cached_dashboard_stats(worker.id)
+    if cached is not None:
+        return cached
+
     today = date.today()
     children = db.query(Child).filter(Child.worker_id == worker.id, Child.is_active == True).all()
     total = len(children)
@@ -31,7 +36,7 @@ def get_dashboard_stats(db: Session = Depends(get_db), worker: Worker = Depends(
     worker_hours_saved = round(total * 0.75, 1)   # ~45 min per child per month
     reports_automated_pct = 97.0
 
-    return {
+    stats = {
         "total_children": total,
         "present_today": present_today,
         "mam_count": mam,
@@ -43,3 +48,7 @@ def get_dashboard_stats(db: Session = Depends(get_db), worker: Worker = Depends(
         "offline_mode": False,
         "last_sync": str(today),
     }
+
+    set_cached_dashboard_stats(worker.id, stats)
+    return stats
+

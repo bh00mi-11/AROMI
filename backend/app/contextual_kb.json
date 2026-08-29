@@ -1,0 +1,438 @@
+[
+  {
+    "id": "doc_0",
+    "source": "WHO Child Growth Standards — MUAC",
+    "context": "",
+    "content": "MUAC < 11.5 cm = SAM (Severe Acute Malnutrition). MUAC 11.5–12.5 cm = MAM (Moderate Acute Malnutrition). MUAC >= 12.5 cm = Normal. SAM children require immediate therapeutic feeding and PHC referral.",
+    "keywords": [
+      "muac",
+      "sam",
+      "mam",
+      "malnutrition",
+      "severe",
+      "moderate",
+      "कुपोषण",
+      "दंड",
+      "दंडघेर",
+      "माप",
+      "सॅम",
+      "मॅम"
+    ],
+    "contextualized_text": "Context: \nDocument: WHO Child Growth Standards — MUAC\nContent: MUAC < 11.5 cm = SAM (Severe Acute Malnutrition). MUAC 11.5–12.5 cm = MAM (Moderate Acute Malnutrition). MUAC >= 12.5 cm = Normal. SAM children require immediate therapeutic feeding and PHC referral.\nKeywords: muac sam mam malnutrition severe moderate कुपोषण दंड दंडघेर माप सॅम मॅम"
+  },
+  {
+    "id": "doc_1",
+    "source": "WHO Weight-for-Age Z-Score",
+    "context": "",
+    "content": "WAZ < -3 SD = Severely Underweight (SAM). WAZ -3 to -2 SD = Underweight (MAM). WAZ > -2 SD = Normal. Monthly weighing is mandatory for all children 0–60 months.",
+    "keywords": [
+      "weight",
+      "waz",
+      "z-score",
+      "underweight",
+      "वजन",
+      "zscore",
+      "कमी वजन",
+      "वजन वाढ"
+    ],
+    "contextualized_text": "Context: \nDocument: WHO Weight-for-Age Z-Score\nContent: WAZ < -3 SD = Severely Underweight (SAM). WAZ -3 to -2 SD = Underweight (MAM). WAZ > -2 SD = Normal. Monthly weighing is mandatory for all children 0–60 months.\nKeywords: weight waz z-score underweight वजन zscore कमी वजन वजन वाढ"
+  },
+  {
+    "id": "doc_2",
+    "source": "WHO Height-for-Age (Stunting)",
+    "context": "Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding WHO Height-for-Age (Stunting).",
+    "content": "HAZ < -3 SD = Severe Stunting. HAZ -3 to -2 SD = Moderate Stunting. Stunting is largely irreversible after age 2; focus on the first 1000 days of life for prevention.",
+    "keywords": [
+      "height",
+      "stunting",
+      "haz",
+      "लंबाई",
+      "छोटा",
+      "खुंटलेली वाढ",
+      "उंची"
+    ],
+    "contextualized_text": "Context: Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding WHO Height-for-Age (Stunting).\nDocument: WHO Height-for-Age (Stunting)\nContent: HAZ < -3 SD = Severe Stunting. HAZ -3 to -2 SD = Moderate Stunting. Stunting is largely irreversible after age 2; focus on the first 1000 days of life for prevention.\nKeywords: height stunting haz लंबाई छोटा खुंटलेली वाढ उंची"
+  },
+  {
+    "id": "doc_3",
+    "source": "ICDS Guidelines — SAM Management",
+    "context": "",
+    "content": "SAM with complications: admit to NRC (Nutrition Rehabilitation Centre) within 24 hours. Uncomplicated SAM: community-based management with RUTF (Ready-to-Use Therapeutic Food). Weekly follow-up mandatory.",
+    "keywords": [
+      "sam",
+      "nrc",
+      "rutf",
+      "severe",
+      "therapeutic",
+      "admit",
+      "गंभीर",
+      "एनआरसी",
+      "उपचार"
+    ],
+    "contextualized_text": "Context: \nDocument: ICDS Guidelines — SAM Management\nContent: SAM with complications: admit to NRC (Nutrition Rehabilitation Centre) within 24 hours. Uncomplicated SAM: community-based management with RUTF (Ready-to-Use Therapeutic Food). Weekly follow-up mandatory.\nKeywords: sam nrc rutf severe therapeutic admit गंभीर एनआरसी उपचार"
+  },
+  {
+    "id": "doc_4",
+    "source": "ICDS Guidelines — MAM Management",
+    "context": "Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding ICDS Guidelines — MAM Management.",
+    "content": "MAM children (3–6 years): RUSF (Ready-to-Use Supplementary Food), 5–6 meals daily including dal, eggs, milk. Follow up every 15 days. If no improvement in 8 weeks, escalate to SAM protocol.",
+    "keywords": [
+      "mam",
+      "rusf",
+      "moderate",
+      "supplementary",
+      "dal",
+      "दाल",
+      "पोषण",
+      "मध्यम",
+      "अंडी",
+      "दूध"
+    ],
+    "contextualized_text": "Context: Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding ICDS Guidelines — MAM Management.\nDocument: ICDS Guidelines — MAM Management\nContent: MAM children (3–6 years): RUSF (Ready-to-Use Supplementary Food), 5–6 meals daily including dal, eggs, milk. Follow up every 15 days. If no improvement in 8 weeks, escalate to SAM protocol.\nKeywords: mam rusf moderate supplementary dal दाल पोषण मध्यम अंडी दूध"
+  },
+  {
+    "id": "doc_5",
+    "source": "POSHAN Abhiyaan Targets",
+    "context": "<chunk>",
+    "content": "National targets: reduce stunting by 2%/year, wasting by 2%/year, anaemia by 3%/year. Convergence of ICDS, health, WASH, food security. Monthly home visits mandatory for all SAM cases.",
+    "keywords": [
+      "poshan",
+      "stunting",
+      "wasting",
+      "anaemia",
+      "target",
+      "पोषण अभियान",
+      "लक्ष्य"
+    ],
+    "contextualized_text": "Context: <chunk>\nDocument: POSHAN Abhiyaan Targets\nContent: National targets: reduce stunting by 2%/year, wasting by 2%/year, anaemia by 3%/year. Convergence of ICDS, health, WASH, food security. Monthly home visits mandatory for all SAM cases.\nKeywords: poshan stunting wasting anaemia target पोषण अभियान लक्ष्य"
+  },
+  {
+    "id": "doc_6",
+    "source": "ICDS Immunisation Schedule",
+    "context": "Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding ICDS Immunisation Schedule.",
+    "content": "At birth: BCG, OPV0, Hep B0. 6 weeks: OPV1, Penta1, RVV1, fIPV1. 10 weeks: OPV2, Penta2, RVV2. 14 weeks: OPV3, Penta3, fIPV2. 9 months: MR1, JE1. 16–24 months: DPT/OPV/Penta boosters, MR2, JE2.",
+    "keywords": [
+      "immunisation",
+      "vaccine",
+      "टीका",
+      "bcg",
+      "opv",
+      "penta",
+      "schedule",
+      "लसीकरण",
+      "लस",
+      "बूस्टर"
+    ],
+    "contextualized_text": "Context: Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding ICDS Immunisation Schedule.\nDocument: ICDS Immunisation Schedule\nContent: At birth: BCG, OPV0, Hep B0. 6 weeks: OPV1, Penta1, RVV1, fIPV1. 10 weeks: OPV2, Penta2, RVV2. 14 weeks: OPV3, Penta3, fIPV2. 9 months: MR1, JE1. 16–24 months: DPT/OPV/Penta boosters, MR2, JE2.\nKeywords: immunisation vaccine टीका bcg opv penta schedule लसीकरण लस बूस्टर"
+  },
+  {
+    "id": "doc_7",
+    "source": "ICDS — Breastfeeding & Complementary Feeding",
+    "context": "<chunk>",
+    "content": "Exclusive breastfeeding for the first 6 months. Complementary feeding starts at 6 months: mashed dal-rice, mashed vegetables. By 12 months: soft family food. Continue breastfeeding up to 2 years.",
+    "keywords": [
+      "breastfeeding",
+      "complementary",
+      "feeding",
+      "स्तनपान",
+      "खिलाना",
+      "आईचे दूध",
+      "वरचा आहार",
+      "बाळ"
+    ],
+    "contextualized_text": "Context: <chunk>\nDocument: ICDS — Breastfeeding & Complementary Feeding\nContent: Exclusive breastfeeding for the first 6 months. Complementary feeding starts at 6 months: mashed dal-rice, mashed vegetables. By 12 months: soft family food. Continue breastfeeding up to 2 years.\nKeywords: breastfeeding complementary feeding स्तनपान खिलाना आईचे दूध वरचा आहार बाळ"
+  },
+  {
+    "id": "doc_8",
+    "source": "Vitamin & Micronutrient Supplementation",
+    "context": "Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding Vitamin & Micronutrient Supplementation.",
+    "content": "Vitamin A: 1 lakh IU at 9 months, then 2 lakh IU every 6 months until age 5. Iron-Folic Acid (IFA) syrup: weekly for 6–59 months. Zinc: 10–20 mg/day for 10–14 days for diarrhoea management.",
+    "keywords": [
+      "vitamin a",
+      "iron",
+      "folic",
+      "zinc",
+      "विटामिन",
+      "आयरन",
+      "supplement",
+      "झिंक",
+      "गोळ्या"
+    ],
+    "contextualized_text": "Context: Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding Vitamin & Micronutrient Supplementation.\nDocument: Vitamin & Micronutrient Supplementation\nContent: Vitamin A: 1 lakh IU at 9 months, then 2 lakh IU every 6 months until age 5. Iron-Folic Acid (IFA) syrup: weekly for 6–59 months. Zinc: 10–20 mg/day for 10–14 days for diarrhoea management.\nKeywords: vitamin a iron folic zinc विटामिन आयरन supplement झिंक गोळ्या"
+  },
+  {
+    "id": "doc_9",
+    "source": "Home Visit Protocol — Anganwadi",
+    "context": "",
+    "content": "Mandatory home visit frequency: SAM child — weekly; MAM child — fortnightly; newborn — within 24 hours of birth; all other children — monthly. Record visits in AWC register and mobile app.",
+    "keywords": [
+      "home visit",
+      "visit",
+      "frequency",
+      "गृह भ्रमण",
+      "griha",
+      "गृहभेट",
+      "भेट"
+    ],
+    "contextualized_text": "Context: \nDocument: Home Visit Protocol — Anganwadi\nContent: Mandatory home visit frequency: SAM child — weekly; MAM child — fortnightly; newborn — within 24 hours of birth; all other children — monthly. Record visits in AWC register and mobile app.\nKeywords: home visit visit frequency गृह भ्रमण griha गृहभेट भेट"
+  },
+  {
+    "id": "doc_10",
+    "source": "ICDS — Anaemia Management",
+    "context": "Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding ICDS — Anaemia Management.",
+    "content": "Anaemia in children <5 years: Hb < 11 g/dL. Mild: Hb 10–10.9. Moderate: 7–9.9. Severe: <7 g/dL. Treatment: IFA syrup 20 mg/day for mild-moderate. Refer to PHC for severe anaemia.",
+    "keywords": [
+      "anaemia",
+      "anemia",
+      "hemoglobin",
+      "hb",
+      "iron",
+      "आयरन",
+      "रक्त",
+      "अशक्तपणा",
+      "पांडुरोग"
+    ],
+    "contextualized_text": "Context: Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding ICDS — Anaemia Management.\nDocument: ICDS — Anaemia Management\nContent: Anaemia in children <5 years: Hb < 11 g/dL. Mild: Hb 10–10.9. Moderate: 7–9.9. Severe: <7 g/dL. Treatment: IFA syrup 20 mg/day for mild-moderate. Refer to PHC for severe anaemia.\nKeywords: anaemia anemia hemoglobin hb iron आयरन रक्त अशक्तपणा पांडुरोग"
+  },
+  {
+    "id": "doc_11",
+    "source": "Diarrhoea & ORS Protocol",
+    "context": "",
+    "content": "Diarrhoea management: ORS after every loose stool (50–100 mL for <2 years, 100–200 mL for >=2 years). Continue breastfeeding. Zinc 20 mg/day for 14 days. Refer if blood in stool, sunken eyes, or child unable to drink.",
+    "keywords": [
+      "diarrhoea",
+      "diarrhea",
+      "ors",
+      "oral rehydration",
+      "दस्त",
+      "zinc",
+      "अतिसार",
+      "जुलाब",
+      "ओआरएस"
+    ],
+    "contextualized_text": "Context: \nDocument: Diarrhoea & ORS Protocol\nContent: Diarrhoea management: ORS after every loose stool (50–100 mL for <2 years, 100–200 mL for >=2 years). Continue breastfeeding. Zinc 20 mg/day for 14 days. Refer if blood in stool, sunken eyes, or child unable to drink.\nKeywords: diarrhoea diarrhea ors oral rehydration दस्त zinc अतिसार जुलाब ओआरएस"
+  },
+  {
+    "id": "doc_12",
+    "source": "WASH — Water, Sanitation & Hygiene",
+    "context": "Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding WASH — Water, Sanitation & Hygiene.",
+    "content": "Handwashing with soap before food, after toilet, after handling child waste. Use boiled or chlorinated water. Open defecation-free status linked to reduced wasting. AWC must have handwashing facility.",
+    "keywords": [
+      "wash",
+      "handwashing",
+      "water",
+      "sanitation",
+      "hygiene",
+      "स्वच्छता",
+      "हात धुणे",
+      "पाणी"
+    ],
+    "contextualized_text": "Context: Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding WASH — Water, Sanitation & Hygiene.\nDocument: WASH — Water, Sanitation & Hygiene\nContent: Handwashing with soap before food, after toilet, after handling child waste. Use boiled or chlorinated water. Open defecation-free status linked to reduced wasting. AWC must have handwashing facility.\nKeywords: wash handwashing water sanitation hygiene स्वच्छता हात धुणे पाणी"
+  },
+  {
+    "id": "doc_13",
+    "source": "Growth Monitoring — Monthly Protocol",
+    "context": "",
+    "content": "Weigh child on same scale monthly. Record on growth chart and plot on WHO standard curves. Falling two major lines on the chart = growth faltering -> immediate referral. Reweigh if result seems incorrect.",
+    "keywords": [
+      "growth monitoring",
+      "weigh",
+      "chart",
+      "faltering",
+      "विकास निगरानी",
+      "वजन काटा",
+      "वाढ"
+    ],
+    "contextualized_text": "Context: \nDocument: Growth Monitoring — Monthly Protocol\nContent: Weigh child on same scale monthly. Record on growth chart and plot on WHO standard curves. Falling two major lines on the chart = growth faltering -> immediate referral. Reweigh if result seems incorrect.\nKeywords: growth monitoring weigh chart faltering विकास निगरानी वजन काटा वाढ"
+  },
+  {
+    "id": "doc_14",
+    "source": "ICDS — Severe Wasting vs Oedema (Kwashiorkor/Marasmus)",
+    "context": "Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding ICDS — Severe Wasting vs Oedema (Kwashiorkor/Marasmus).",
+    "content": "Bilateral pitting oedema = Kwashiorkor (protein deficiency). Severe wasting without oedema = Marasmus. Both are classified as SAM and must be referred to NRC. Test oedema by pressing top of foot for 3 seconds.",
+    "keywords": [
+      "oedema",
+      "kwashiorkor",
+      "marasmus",
+      "wasting",
+      "protein",
+      "edema",
+      "सूजन",
+      "पायावर सूज",
+      "क्वाशिओरकोर"
+    ],
+    "contextualized_text": "Context: Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding ICDS — Severe Wasting vs Oedema (Kwashiorkor/Marasmus).\nDocument: ICDS — Severe Wasting vs Oedema (Kwashiorkor/Marasmus)\nContent: Bilateral pitting oedema = Kwashiorkor (protein deficiency). Severe wasting without oedema = Marasmus. Both are classified as SAM and must be referred to NRC. Test oedema by pressing top of foot for 3 seconds.\nKeywords: oedema kwashiorkor marasmus wasting protein edema सूजन पायावर सूज क्वाशिओरकोर"
+  },
+  {
+    "id": "doc_15",
+    "source": "MWCD / ECCE Curriculum Framework",
+    "context": "",
+    "content": "Early Childhood Care & Education: daily 45-min curriculum balancing motor physical skills (jumping, coordination), cognitive counting games, and language rhymes/storytelling for 3–6 year olds.",
+    "keywords": [
+      "ecce",
+      "activity plan",
+      "curriculum",
+      "game",
+      "rhyme",
+      "बालवाटिका",
+      "खेळ",
+      "गाणी",
+      "पाठ योजना",
+      "अंगणवाडी"
+    ],
+    "contextualized_text": "Context: \nDocument: MWCD / ECCE Curriculum Framework\nContent: Early Childhood Care & Education: daily 45-min curriculum balancing motor physical skills (jumping, coordination), cognitive counting games, and language rhymes/storytelling for 3–6 year olds.\nKeywords: ecce activity plan curriculum game rhyme बालवाटिका खेळ गाणी पाठ योजना अंगणवाडी"
+  },
+  {
+    "id": "doc_16",
+    "source": "DISHA Emergency Escalation Protocol",
+    "context": "Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding DISHA Emergency Escalation Protocol.",
+    "content": "Immediate 24-hour referral protocol: SAM with medical complications, high fever, or respiratory distress triggers automated WhatsApp alert to supervisor and voice notification to parents.",
+    "keywords": [
+      "disha",
+      "emergency",
+      "escalation",
+      "whatsapp",
+      "call",
+      "रेफरल",
+      "तातडीने",
+      "अलर्ट",
+      "आपत्कालीन"
+    ],
+    "contextualized_text": "Context: Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding DISHA Emergency Escalation Protocol.\nDocument: DISHA Emergency Escalation Protocol\nContent: Immediate 24-hour referral protocol: SAM with medical complications, high fever, or respiratory distress triggers automated WhatsApp alert to supervisor and voice notification to parents.\nKeywords: disha emergency escalation whatsapp call रेफरल तातडीने अलर्ट आपत्कालीन"
+  },
+  {
+    "id": "doc_17",
+    "source": "MoHFW — Nutrition Rehabilitation Centre (NRC) Protocols",
+    "context": "",
+    "content": "Inpatient NRC admission criteria for SAM: Failed Appetite Test, Bilateral pitting oedema +++, or medical complications (fever >38.5C, severe vomiting, hypothermia). Uses F-75 formula initially, then F-100 catch-up formula. Discharge requires >=15% weight gain.",
+    "keywords": [
+      "nrc",
+      "appetite test",
+      "f75",
+      "f100",
+      "admission",
+      "discharge",
+      "weight gain",
+      "एनआरसी",
+      "भूक चाचणी",
+      "दाखल",
+      "वजन वाढ"
+    ],
+    "contextualized_text": "Context: \nDocument: MoHFW — Nutrition Rehabilitation Centre (NRC) Protocols\nContent: Inpatient NRC admission criteria for SAM: Failed Appetite Test, Bilateral pitting oedema +++, or medical complications (fever >38.5C, severe vomiting, hypothermia). Uses F-75 formula initially, then F-100 catch-up formula. Discharge requires >=15% weight gain.\nKeywords: nrc appetite test f75 f100 admission discharge weight gain एनआरसी भूक चाचणी दाखल वजन वाढ"
+  },
+  {
+    "id": "doc_18",
+    "source": "NHM / MoHFW — Home-Based Newborn Care (HBNC & HBYC)",
+    "context": "Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding NHM / MoHFW — Home-Based Newborn Care (HBNC & HBYC).",
+    "content": "Newborn home visits on Days 1, 3, 7, 14, 21, 28, 42. Check birth weight, umbilical cord sepsis, jaundice, and fast breathing (>60 breaths/min). Provide Kangaroo Mother Care (KMC) for Low Birth Weight (<2.5 kg) babies.",
+    "keywords": [
+      "hbnc",
+      "hbyc",
+      "newborn",
+      "kmc",
+      "kangaroo mother care",
+      "cord sepsis",
+      "jaundice",
+      "नवजात",
+      "कांगारू केअर",
+      "नाळ",
+      "गृहभेट"
+    ],
+    "contextualized_text": "Context: Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding NHM / MoHFW — Home-Based Newborn Care (HBNC & HBYC).\nDocument: NHM / MoHFW — Home-Based Newborn Care (HBNC & HBYC)\nContent: Newborn home visits on Days 1, 3, 7, 14, 21, 28, 42. Check birth weight, umbilical cord sepsis, jaundice, and fast breathing (>60 breaths/min). Provide Kangaroo Mother Care (KMC) for Low Birth Weight (<2.5 kg) babies.\nKeywords: hbnc hbyc newborn kmc kangaroo mother care cord sepsis jaundice नवजात कांगारू केअर नाळ गृहभेट"
+  },
+  {
+    "id": "doc_19",
+    "source": "ICMR - National Institute of Nutrition (NIN) Recipes",
+    "context": "<chunk>",
+    "content": "Nutrient-dense recipes: Sattu-Peanut Mix (50g sattu + 30g peanuts + 20g jaggery = 450 kcal, 14g protein), Sprouted Moong & Moringa Khichdi, Ragi Malt. Add 1 tsp oil/ghee to increase calorie density without extra bulk.",
+    "keywords": [
+      "icmr",
+      "nin",
+      "recipe",
+      "sattu",
+      "peanut",
+      "moringa",
+      "ragi",
+      "calorie",
+      "protein",
+      "सत्तू",
+      "शेंगदाणे",
+      "शेवगा",
+      "नाचणी",
+      "आहार"
+    ],
+    "contextualized_text": "Context: <chunk>\nDocument: ICMR - National Institute of Nutrition (NIN) Recipes\nContent: Nutrient-dense recipes: Sattu-Peanut Mix (50g sattu + 30g peanuts + 20g jaggery = 450 kcal, 14g protein), Sprouted Moong & Moringa Khichdi, Ragi Malt. Add 1 tsp oil/ghee to increase calorie density without extra bulk.\nKeywords: icmr nin recipe sattu peanut moringa ragi calorie protein सत्तू शेंगदाणे शेवगा नाचणी आहार"
+  },
+  {
+    "id": "doc_20",
+    "source": "MWCD — Poshan Tracker Operational Guidelines",
+    "context": "Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding MWCD — Poshan Tracker Operational Guidelines.",
+    "content": "Poshan Tracker categories: 0–6m, 6m–3y, 3–6y, Pregnant & Lactating Mothers. If newborn lacks Aadhaar, register using mother's/guardian's Aadhaar without denying benefits. SAM children receive double Take-Home Rations (THR).",
+    "keywords": [
+      "poshan tracker",
+      "aadhaar",
+      "thr",
+      "take home ration",
+      "hcm",
+      "hot cooked meal",
+      "पोषण ट्रॅकर",
+      "आधार",
+      "टीएचआर",
+      "रेशन"
+    ],
+    "contextualized_text": "Context: Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding MWCD — Poshan Tracker Operational Guidelines.\nDocument: MWCD — Poshan Tracker Operational Guidelines\nContent: Poshan Tracker categories: 0–6m, 6m–3y, 3–6y, Pregnant & Lactating Mothers. If newborn lacks Aadhaar, register using mother's/guardian's Aadhaar without denying benefits. SAM children receive double Take-Home Rations (THR).\nKeywords: poshan tracker aadhaar thr take home ration hcm hot cooked meal पोषण ट्रॅकर आधार टीएचआर रेशन"
+  },
+  {
+    "id": "doc_21",
+    "source": "MoHFW / MWCD — Mother and Child Protection (MCP) Card Milestones",
+    "context": "</document>",
+    "content": "Developmental milestone screening: Head steady by 3 months, sitting without support by 6–9 months, standing and simple words ('mama', 'dada') by 12 months. MCP Green channel = Normal, Yellow = MAM, Orange/Red = SAM.",
+    "keywords": [
+      "mcp card",
+      "milestones",
+      "development",
+      "green channel",
+      "red channel",
+      "विकास टप्पे",
+      "मान धरणे",
+      "रांगणे",
+      "उभे राहणे"
+    ],
+    "contextualized_text": "Context: </document>\nDocument: MoHFW / MWCD — Mother and Child Protection (MCP) Card Milestones\nContent: Developmental milestone screening: Head steady by 3 months, sitting without support by 6–9 months, standing and simple words ('mama', 'dada') by 12 months. MCP Green channel = Normal, Yellow = MAM, Orange/Red = SAM.\nKeywords: mcp card milestones development green channel red channel विकास टप्पे मान धरणे रांगणे उभे राहणे"
+  },
+  {
+    "id": "doc_22",
+    "source": "MoHFW — National Deworming Day (NDD) Protocol",
+    "context": "Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding MoHFW — National Deworming Day (NDD) Protocol.",
+    "content": "Biannual Albendazole deworming: Age 12–23 months = Half tablet (200 mg) crushed in water; Age 24–59 months = One full tablet (400 mg) chewed. Prevents parasitic worm-induced anaemia and growth faltering.",
+    "keywords": [
+      "deworming",
+      "albendazole",
+      "ndd",
+      "worms",
+      "कृमी",
+      "अल्बेंडाझोल",
+      "जंतनाशक",
+      "गोळी"
+    ],
+    "contextualized_text": "Context: Official Government of India (ICDS/MoHFW/NIN/POSHAN) guidelines regarding MoHFW — National Deworming Day (NDD) Protocol.\nDocument: MoHFW — National Deworming Day (NDD) Protocol\nContent: Biannual Albendazole deworming: Age 12–23 months = Half tablet (200 mg) crushed in water; Age 24–59 months = One full tablet (400 mg) chewed. Prevents parasitic worm-induced anaemia and growth faltering.\nKeywords: deworming albendazole ndd worms कृमी अल्बेंडाझोल जंतनाशक गोळी"
+  },
+  {
+    "id": "doc_23",
+    "source": "NIPCCD — VHSND & Community Mobilization (Poshan Maah)",
+    "context": "",
+    "content": "Village Health, Sanitation and Nutrition Day (VHSND) held monthly at AWC with ANM and ASHA for immunization, ANC, and growth monitoring. Poshan Maah (Sept) and Poshan Pakhwada (March) focus on nutri-gardens and feeding camps.",
+    "keywords": [
+      "vhsnd",
+      "poshan maah",
+      "poshan pakhwada",
+      "anm",
+      "asha",
+      "nutri garden",
+      "ग्राम आरोग्य दिवस",
+      "पोषण माह",
+      "पोषण वाटिका"
+    ],
+    "contextualized_text": "Context: \nDocument: NIPCCD — VHSND & Community Mobilization (Poshan Maah)\nContent: Village Health, Sanitation and Nutrition Day (VHSND) held monthly at AWC with ANM and ASHA for immunization, ANC, and growth monitoring. Poshan Maah (Sept) and Poshan Pakhwada (March) focus on nutri-gardens and feeding camps.\nKeywords: vhsnd poshan maah poshan pakhwada anm asha nutri garden ग्राम आरोग्य दिवस पोषण माह पोषण वाटिका"
+  }
+]
